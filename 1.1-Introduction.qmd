@@ -1,0 +1,56 @@
+---
+title: "Multivariate Statistics"
+subtitle: "Introduction"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+---
+
+## Module overview
+
+
+## Module prerequisites
+
+- *Quantitative Methods in Life Sciences I*
+- Updated R and RStudio
+- Basics of probability and statistics
+- Basics of R programming methods
+
+
+## Relevant *Quantitative Methods I* course materials
+
+- [Course files on Github](https://github.com/kmiddleton/quant_methods)
+  - Clone to your computer for reference
+- [Course videos on Youtube](https://www.youtube.com/playlist?list=PLeIk-G-wZpqx1yW49XAHqoccBXhNJrUSu) 
+
+
+## Resources
+
+
+## What we cover and don't cover
+
+Do:
+
+
+Don't:
+
+
+
+## Multiple motivations for this module
+
+
+
+## Target Skillsets
+
+
+
+## Useful Packages
+
