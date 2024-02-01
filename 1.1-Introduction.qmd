@@ -12,10 +12,9 @@ format:
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
+bibliography: Multivariate.bib
+csl: evolution.csl
 ---
-
-## Module overview
-
 
 ## Module prerequisites
 
@@ -27,30 +26,48 @@ format:
 
 ## Relevant *Quantitative Methods I* course materials
 
+- Units 6, 7, and 12
 - [Course files on Github](https://github.com/kmiddleton/quant_methods)
   - Clone to your computer for reference
 - [Course videos on Youtube](https://www.youtube.com/playlist?list=PLeIk-G-wZpqx1yW49XAHqoccBXhNJrUSu) 
 
 
-## Resources
+## Module overview
+
+1. Motivations
+1. Dimensionality reduction
+1. Group Comparisons
+1. Classification
+1. Ordination
 
 
 ## What we cover and don't cover
 
+> "... the art of data analysis is about choosing and using multiple tools" - Frank Harrell [-@Harrell2010-ql]
+
 Do:
 
+- (Some) background math / theory
+- Common tools, approaches, analyses
+    - How to use them and what they are used for
 
 Don't:
 
+- Every possible use case
 
 
-## Multiple motivations for this module
+## Resources
+
+- *Biostatistical Analysis* [@Zar2009-am]
+- *Regression Modeling Strategies* [@Harrell2010-ql]
+- *An Introduction to Applied Multivariate Analysis with R* [@Everitt2011-eu]
+- *Multivariate Statistics for Wildlife and Ecology Research* [@McGarigal2013-tq]
+- *Using Multivariate Statistics* [@Tabachnick2019-tl]
+- *Applied Multivariate Statistics in R* [@Bakker2024-mg]
 
 
+## References
 
-## Target Skillsets
-
-
-
-## Useful Packages
+::: {#refs}
+:::
 

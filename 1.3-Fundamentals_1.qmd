@@ -1,0 +1,34 @@
+---
+title: "Fundamentals 1"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+bibliography: Multivariate.bib
+csl: evolution.csl
+---
+
+## Data types and operations
+
+## Scalar, vector, matrix
+
+## Add, subtract, etc.
+
+## Linear models
+
+Multiple regression, ANOVA, etc
+
+
+
+## References
+
+::: {#refs}
+:::
+
