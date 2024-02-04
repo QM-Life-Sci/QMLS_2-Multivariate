@@ -27,14 +27,14 @@ csl: evolution.csl
 ## Relevant *Quantitative Methods I* course materials
 
 - Units 6, 7, and 12
-- [Course files on Github](https://github.com/kmiddleton/quant_methods)
+- [Course files on Github](https://github.com/QM-Life-Sci/QMLS_1)
   - Clone to your computer for reference
-- [Course videos on Youtube](https://www.youtube.com/playlist?list=PLeIk-G-wZpqx1yW49XAHqoccBXhNJrUSu) 
+- [Course videos on Youtube](https://www.youtube.com/playlist?list=PLeIk-G-wZpqyys1lUuWQDxeMQA1ICncmH) 
 
 
 ## Module overview
 
-1. Motivations
+1. Goals and Motivations
 1. Dimensionality reduction
 1. Group Comparisons
 1. Classification
@@ -56,12 +56,19 @@ Don't:
 - Every possible use case
 
 
-## Resources
+## Resources 1
 
 - *Biostatistical Analysis* [@Zar2009-am]
 - *Regression Modeling Strategies* [@Harrell2010-ql]
+- *Numerical Ecology with R* [@Borcard2011-ks]
 - *An Introduction to Applied Multivariate Analysis with R* [@Everitt2011-eu]
+- *A Primer of Ecological Statistics* [@Gotelli2013-ky]
+
+
+## Resources 2
+
 - *Multivariate Statistics for Wildlife and Ecology Research* [@McGarigal2013-tq]
+- *Multivariate Analysis of Ecological Data with ade4* [@Thioulouse2018-ax]
 - *Using Multivariate Statistics* [@Tabachnick2019-tl]
 - *Applied Multivariate Statistics in R* [@Bakker2024-mg]
 

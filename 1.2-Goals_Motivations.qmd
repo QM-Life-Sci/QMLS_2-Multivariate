@@ -1,0 +1,206 @@
+---
+title: "Goals and Motivations"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+bibliography: Multivariate.bib
+csl: evolution.csl
+---
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(GGally)
+library(cowplot)
+library(factoextra)
+library(plotly)
+theme_set(theme_cowplot())
+
+```
+
+## Goals and Concepts
+
+> "We strive to be short on theory but long on conceptual understanding." Tabachnick and Fidell [-@Tabachnick2019-tl]
+
+- What are the common multivariate techniques?
+- What kinds of questions are they useful for?
+- How do I use them?
+- How do I interpret their outputs?
+
+
+## What is "multivariate" statistics?
+
+- Multiple predictors: $y \sim x_1 + x_2 + ...$
+- No outcome variable: $\sim x_1 + x_2 + ...$
+- Multiple outcome variables: $y_1 + y_2 + ... \sim x_1 + x_2 + ...$
+
+Different ways of ways of relating two "sets" of variables to each other
+
+
+## Challenges to multivariate data
+
+- Visualization
+- (Modeling)
+- Interpretation
+    - With more complex analyses come more challenging interpretation
+
+
+## Pitcher plant morphology
+
+![](./Images/Darlingtonia.png){fig-align="center"}
+
+*Darlingtonia californica* data from Ellison and Farnsworth [-@Ellison2005-cs]
+
+
+## Pitcher plant morphology
+
+```{r}
+PP <- read_csv("./Data/Darlingtonia.csv", show_col_types = FALSE) |> 
+  select(1:14) |> 
+  mutate(ID = seq_len(n())) |> 
+  relocate(ID)
+glimpse(PP)
+```
+
+
+## Pitcher plants
+
+Traits measured on the same individual are not independent of one another.
+
+```{r}
+head(PP)
+```
+
+
+## Visualizing multivariate data
+
+```{r}
+fig <- plot_ly() |>
+  add_markers(data = PP,
+              x = ~ Mouth_Diam,
+              y = ~ Tube_Diam,
+              z = ~ Keel_Diam,
+              color = ~ Height,
+              marker = list(size = 5),
+              showlegend = FALSE) |>
+  layout(scene = list(xaxis = list(title = 'Mouth Diameter'),
+                      yaxis = list(title = 'Tube Diameter'),
+                      zaxis = list(title = 'Keel Diameter')))
+
+fig
+```
+
+
+## Visualizing multivariate data
+
+`Ggally::ggscatmat()`
+
+- Pairwise scatterplots
+- Univariate density plots
+- Pairwise correlations
+
+```{r}
+#| echo: true
+#| output-location: slide
+#| fig-align: center
+
+ggscatmat(PP, columns = 3:15)
+```
+
+
+## Visualizing multivariate data
+
+```{r}
+#| fig-align: center
+
+ggscatmat(PP, columns = 3:6) +
+  theme(axis.text = element_text(size = 8),
+        strip.text = element_text(size = 8))
+```
+
+
+## Visualizing multivariate data
+
+```{r}
+#| fig-align: center
+
+ggscatmat(PP, columns = 3:6, color = "Site") +
+  theme(axis.text = element_text(size = 8),
+        strip.text = element_text(size = 8))
+```
+
+
+## Multiple predictors
+
+How is a variable able to predict an outcome variable after accounting for all the other predictors?
+
+**Multiple regression**
+
+`Height ~ Mouth_Diam + Tube_Diam + Keel_Diam + Site`
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+fm <- lm(Height ~ Mouth_Diam + Tube_Diam + Keel_Diam + Site,
+         data = PP)
+summary(fm)
+```
+
+
+## No outcome variable
+
+What are the patterns of shared variance between a set of variables?
+
+**PCA**
+
+`~ Height + Mouth_Diam + Tube_Diam + Keel_Diam`
+
+
+## No outcome variable
+
+```{r}
+#| fig-align: center
+
+z <- prcomp(~ .,
+            data = PP[, 3:6],
+            center = TRUE,
+            scale. = TRUE)
+fviz_pca_var(z)
+```
+
+
+## Multiple outcome variables
+
+How well can a predictor variable jointly predict a multivariate set of outcome variables?
+
+**MANOVA**
+
+`Height + Mouth_Diam + Tube_Diam + Keel_Diam ~ Site`
+
+
+## Multiple outcome variables
+
+```{r}
+fm <- lm(cbind(Height, Mouth_Diam, Tube_Diam, Keel_Diam) ~ Site,
+         data = PP)
+anova(fm)
+```
+
+
+## References
+
+::: {#refs}
+:::
+
