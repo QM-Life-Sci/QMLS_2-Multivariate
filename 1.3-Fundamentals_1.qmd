@@ -15,20 +15,239 @@ bibliography: Multivariate.bib
 csl: evolution.csl
 ---
 
-## Data types and operations
+## Fundamentals
 
-## Scalar, vector, matrix
+- Need to think about object classes more often with multivariate data and analysis
+    - Use base classes: vectors, matrices, and arrays
+- Every object in R has one or more classes
 
-## Add, subtract, etc.
+```{r}
+#| echo: true
 
-## Linear models
+class(1)
+class(1:5)
+class(matrix(rnorm(4), nrow = 2))
+class(data.frame)
+```
 
-Multiple regression, ANOVA, etc
+
+## Scalars
+
+- Single number (`integer` or `numeric`)
+- Internally a vector of length 1
+
+Default numeric is a *double precision floating point numeric*: $2 \times 10^{\pm308}$
+```{r}
+#| echo: true
+
+x <- 4
+class(x)
+```
+
+`L` specifies a *long integer*: $\pm 2 \times 10^{-9}$
+
+```{r}
+#| echo: true
+
+x <- 4L
+class(x)
+```
 
 
+## Vectors
 
-## References
+- Sequence of numbers (`integer` or `numeric`)
 
-::: {#refs}
-:::
+```{r}
+#| echo: true
+
+x1 <- c(1, 2, 3, 4, 5)
+class(x1)
+```
+
+```{r}
+#| echo: true
+
+x2 <- seq(1, 5, by = 1)
+class(x2)
+```
+
+```{r}
+#| echo: true
+
+x3 <- 1:5
+class(x3)
+```
+
+## Checking for equality
+
+`c()` vs. `seq()`
+
+```{r}
+#| echo: true
+
+all.equal(x1, x2)
+```
+
+`seq()` vs. `:`
+
+```{r}
+#| echo: true
+all.equal(x2, x3)
+identical(x2, x3)
+```
+
+Read the help for `all.equal()` for discussion about checking equality
+
+
+## Matrices
+
+- $n \times m$ object of all one data class (numeric, boolean, character)
+    - *Convention*: $n$ rows by $m$ columns
+- Created columnwise by default
+    
+```{r}
+#| echo: true
+
+matrix(1:9, nrow = 3)
+matrix(1:9, nrow = 3, byrow = TRUE)
+```
+
+
+## Dimensions
+
+```{r}
+#| echo: true
+
+x <- matrix(1:8, nrow = 4)
+dim(x)
+nrow(x)
+ncol(x)
+```
+
+No `dim()`, `nrow()`, or `ncol()` for a vector
+
+```{r}
+#| echo: true
+
+x <- 1:5
+dim(x)
+nrow(x)
+ncol(x)
+```
+
+
+## Vectors are assumed to be column vectors
+
+- Even though `ncol()` is `NULL`
+- Explicitly create a row matrix if you need to
+
+```{r}
+#| echo: true
+
+x <- 1:5
+M <- matrix(x, nrow = 1)
+M
+dim(M)
+```
+
+
+## Indexing
+
+Recall `[ ]` indexing:
+
+```{r}
+#| echo: true
+
+M <- matrix(1:9, nrow = 3)
+M[2, ]
+M[, 2]
+M[, 2:3]
+```
+
+
+## Indexing drops dimensions
+
+Default behavior:
+
+```{r}
+#| echo: true
+
+(M <- matrix(1:9, nrow = 3))
+(x <- M[2, ])
+class(x)
+```
+
+
+## Indexing drops dimensions
+
+- Use `drop = FALSE` to retain dimensions
+    - i.e., subset a matrix and keep it as a matrix
+    - see `help("[")`: *Extract or Replace Parts of an Object*
+
+```{r}
+#| echo: true
+
+(x <- M[2, , drop = FALSE])
+class(x)
+```
+
+
+## Operations
+
+Most operations work as you intuitively expect them:
+
+```{r}
+#| echo: true
+
+x <- 1:5
+x + 2
+x * 2
+```
+
+Even on matrices
+
+```{r}
+#| echo: true
+
+M <- matrix(1:4, nrow = 2)
+M + 2
+M * 2
+```
+
+
+## Element-by-element multiplication
+
+Vectors: 
+
+```{r}
+#| echo: true
+
+x * x
+x * x * x
+```
+
+Matrices:
+
+```{r}
+#| echo: true
+
+M * M
+M * M * M
+```
+
+"Matrix multiplication" comes in the next unit
+
+
+## Combining vectors and matrices
+
+`cbind()` and `rbind()`:
+
+```{r}
+#| echo: true
+
+rbind(x, x, x)
+cbind(M, M, M)
+rbind(M, M)
+```
 
