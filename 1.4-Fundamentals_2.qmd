@@ -15,15 +15,291 @@ bibliography: Multivariate.bib
 csl: evolution.csl
 ---
 
-## Distributions
+```{r}
+#| label: setup
+#| echo: false
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(cowplot)
+library(ggExtra)
+library(plotly)
+library(GGally)
+
+theme_set(theme_cowplot())
+```
+
+
+## Fundamentals
+
+Recalling and extending some core concepts from QMLS 1
+
+- Normal distribution
+- Variance, covariance
+- Linear models
+
+
+## Univariate normal distribution
+
+$$
+f\left(y\right)=\frac{1}{\sqrt{2\pi\sigma^{2}}}e^{\frac{-\left(y-\mu\right)^{2}}{2\sigma^{2}}}
+$$
+
+```{r}
+#| fig-align: center
+
+tibble(y = seq(-3, 3, length.out = 200),
+       dy = dnorm(y)) |> 
+  ggplot(aes(x = y, y = dy)) +
+  geom_line(linewidth = 2, color = "firebrick") +
+  labs(y = "P[y]") +
+  scale_x_continuous(breaks = seq(-3, 3, by = 0.5)) +
+  theme(axis.title = element_text(face = "italic", size = 18))
+```
+
+
+## Bivariate normal distribution
+
+Two univariate normal distributions
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+set.seed(43237497)
+
+BVN <- tibble(x1 = rnorm(1e4, mean = 0, sd = 1),
+              x2 = rnorm(1e4, mean = 0, sd = 1))
+
+P <- ggplot(BVN, aes(x1, x2)) +
+  geom_point(alpha = 0.25, color = "firebrick") +
+  coord_equal()
+ggExtra::ggMarginal(P, type = "histogram", fill = "firebrick")
+```
+
+
+
+## Visualizing bivariate density
+
+```{r}
+#| echo: true
+
+ggplot(BVN, aes(x1, x2)) +
+  geom_point(size = 1, alpha = 0.25) +
+  geom_density_2d(linewidth = 0.75, color = "firebrick") +
+  coord_equal()
+```
+
 
 ## Multivariate normal distribution
 
-## Correlation
+```{r}
+set.seed(9874774)
 
-## Variance, covariance
+MVN <- tibble(x1 = rnorm(1e4, mean = 0, sd = 1),
+              x2 = rnorm(1e4, mean = 0, sd = 1),
+              x3 = rnorm(1e4, mean = 0, sd = 1))
 
-## Generating correlated data
+fig <- plot_ly() |>
+  add_markers(data = MVN,
+              x = ~ x1,
+              y = ~ x2,
+              z = ~ x3,
+              
+              opacity = 0.15,
+              marker = list(size = 5,
+                            color = 'firebrick'),
+              showlegend = FALSE) |>
+  hide_colorbar() |>
+  layout(scene = list(xaxis = list(title = 'x1'),
+                      yaxis = list(title = 'x2'),
+                      zaxis = list(title = 'x3')))
+
+fig
+```
+
+
+## Variance and covariance
+
+Variance ($s$) = Standard deviation^2^ ($s^2$)
+
+$$s^2 = \mathrm{Var}(x_1) = \frac{\Sigma(x_{1i} - \bar{x_1})^2}{n - 1}$$
+
+Covariance of two variables measures the strength of their joint variation
+
+$$\mathrm{Cov}(x_1, x_2) = \frac{\Sigma(x_{1i} - \bar{x_1})(x_{2i} - \bar{x_2})}{n - 1}$$
+
+## Variance and covariance
+
+```{r}
+#| echo: true
+
+set.seed(1364190)
+x1 <- rnorm(1e3, mean = 0, sd = 2)
+x2 <- rnorm(1e3, mean = 0, sd = 2)
+
+var(x1)
+var(x2)
+cov(x1, x1)
+cov(x1, x2)
+```
+
+
+## Correlation ($r$)
+
+Pearson's product-moment correlation
+
+- Standardizes covariance by the standard deviations
+
+$$r_{x_1, x_2} = \frac{\mathrm{Cov}(x_1, x_2)}{s_{x_1}s_{x_2}}$$
+
+```{r}
+#| echo: true
+
+cor(x1, x2)
+```
+
+
+
+## Correlated data
+
+```{r}
+#| echo: true
+#| fig-align: center
+
+set.seed(34273)
+CD <- tibble(x = runif(20, min = 0, max = 10),
+             y = 4 * x + rnorm(20, sd = 4))
+
+ggplot(CD, aes(x, y)) +
+  geom_point(size = 3) +
+  labs(title = paste("r", "=", round(cor(CD$x, CD$y), 2)))
+
+```
+
+
+## R^2^ is related to *r*
+
+```{r}
+#| echo: true
+
+cor(CD$x, CD$y) ^ 2
+summary(lm(y ~ x, data = CD))
+```
+
+
+## Correlation matrix
+
+If you pass `cor()` a matrix or data.frame, it will return the correlation matrix:
+
+```{r}
+#| echo: true
+
+head(BVN)
+cor(BVN)
+cor(BVN$x1, BVN$x2)
+```
+
+
+## Variance-covariance matrix
+
+If you pass `var()` a matrix or data.frame, it will return the variance-covariance matrix:
+
+- Variance on the diagonal
+- Covariance on the off-diagonal
+
+```{r}
+#| echo: true
+
+apply(BVN, MARGIN = 2, FUN = var)
+var(BVN)
+cov(BVN$x1, BVN$x2)
+```
+
+
+## Generating multivariate normal data
+
+- Generate multivariate normal data
+- Specify the variance-covariance matrix (`sigma`)
+
+```{r}
+#| echo: true
+
+library(mvtnorm)
+
+sigma <- matrix(c(10, 3, 3, 15), ncol = 2)
+sigma
+```
+
+
+## Generating multivariate normal data
+
+```{r}
+#| echo: true
+
+x <- rmvnorm(n = 1e4, mean = c(1, 2), sigma = sigma)
+head(x)
+
+colMeans(x)
+cor(x)
+var(x)
+```
+
+
+## Checking our samples
+
+```{r}
+ggscatmat(x)
+```
+
+
+## Estimating the correlation *a priori*
+
+$$r_{x_1, x_2} = \frac{\mathrm{Cov}(x_1, x_2)}{\sqrt{s^2_{x_1}s^2_{x_2}}}$$
+
+```{r}
+#| echo: true
+
+sigma
+
+3 / sqrt(10 * 15)
+```
+
+
+## Specifying the correlation
+
+Set variances to 1 and the covariance to the correlation
+
+```{r}
+#| echo: true
+
+sigma <- matrix(c(1, 0.8, 0.8, 1), ncol = 2)
+sigma
+
+x <- rmvnorm(n = 1e4, mean = c(1, 10), sigma = sigma)
+
+colMeans(x)
+cor(x)
+var(x)
+```
+
+
+## Visualizing bivariate density
+
+```{r}
+ggplot(as_tibble(x), aes(V1, V2)) +
+  geom_point(size = 1, alpha = 0.25) +
+  geom_density_2d(linewidth = 0.75, color = "firebrick") +
+  coord_equal()
+```
+
+
+
+## Linear models
+
+Multiple regression, ANOVA, etc
+
 
 
 ## References
