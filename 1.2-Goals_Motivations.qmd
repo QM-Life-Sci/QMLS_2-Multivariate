@@ -183,9 +183,9 @@ fviz_pca_var(z)
 
 ## Multiple outcome variables
 
-How well can a predictor variable jointly predict a multivariate set of outcome variables?
+How well can a categorical predictor variable jointly predict a multivariate set of outcome variables?
 
-**MANOVA**
+**MANOVA**:
 
 `Height + Mouth_Diam + Tube_Diam + Keel_Diam ~ Site`
 
@@ -198,6 +198,12 @@ fm <- lm(cbind(Height, Mouth_Diam, Tube_Diam, Keel_Diam) ~ Site,
 anova(fm)
 ```
 
+
+## Categorical outcome with multiple predictors
+
+`Site ~ Height + Mouth_Diam + Tube_Diam + Keel_Diam`
+
+FIXME DFA / logistic regression
 
 ## References
 

@@ -36,8 +36,14 @@ theme_set(theme_cowplot())
 Recalling and extending some core concepts from QMLS 1
 
 - Normal distribution
-- Variance, covariance
-- Linear models
+- Variance
+- Covariance
+- Correlation
+
+
+## Some suggested references
+
+FIXME
 
 
 ## Univariate normal distribution
@@ -129,6 +135,7 @@ $$s^2 = \mathrm{Var}(x_1) = \frac{\Sigma(x_{1i} - \bar{x_1})^2}{n - 1}$$
 Covariance of two variables measures the strength of their joint variation
 
 $$\mathrm{Cov}(x_1, x_2) = \frac{\Sigma(x_{1i} - \bar{x_1})(x_{2i} - \bar{x_2})}{n - 1}$$
+
 
 ## Variance and covariance
 
@@ -293,13 +300,6 @@ ggplot(as_tibble(x), aes(V1, V2)) +
   geom_density_2d(linewidth = 0.75, color = "firebrick") +
   coord_equal()
 ```
-
-
-
-## Linear models
-
-Multiple regression, ANOVA, etc
-
 
 
 ## References

@@ -251,3 +251,7 @@ cbind(M, M, M)
 rbind(M, M)
 ```
 
+
+## Arrays
+
+FIXME
