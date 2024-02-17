@@ -252,6 +252,98 @@ rbind(M, M)
 ```
 
 
-## Arrays
+## Arrays: multidimensional matrices 
 
-FIXME
+- 3 or more dimensions
+- 3 dimensions is common
+    - Each sample or individual has a matrix of observations (Rows, Columns)
+    - Dimension 3 is samples, specimens, or individuals
+- Visualize a stack of cards
+    - (Rows, Columns, Samples)
+
+
+## Creating arrays
+
+```{r}
+#| echo: true
+
+M1 <- matrix(1:4, nrow = 2)
+M2 <- matrix(5:8, nrow = 2)
+M3 <- matrix(9:12, nrow = 2)
+
+(AA <- array(c(M1, M2, M3), dim = c(2, 2, 3)))
+```
+
+
+## Naming arrays
+
+- `dimnames()` is a list of vectors. Dimensions must match.
+- Can provide on creation
+
+```{r}
+#| echo: true
+
+dimnames(AA) <- list(c("x1", "x2"),
+                     c("y1", "y2"),
+                     c("M1", "M2", "M3"))
+AA
+```
+
+
+## Naming specific dimensions
+
+Specify the dimension using `[[]]` notation:
+
+```{r}
+#| echo: true
+
+dimnames(AA)[[3]] <- c("m1", "m2", "m3")
+AA
+```
+
+
+## Subsetting arrays by position
+
+```{r}
+#| echo: true
+
+# All of element 1
+AA[ , , 1]
+
+# Column 2 of all elements
+AA[ , 2 , ]
+
+# Row 1 of all elements
+AA[1 , , ]
+```
+
+May need to `t()` after
+
+
+## Subsetting arrays by name
+
+```{r}
+#| echo: true
+
+# All of m1
+AA[ , , "m1"]
+
+# Row x1 of m1
+AA["x1" , , "m1"]
+
+# Row x1 of m1 as an array
+AA["x1" , , "m1", drop = FALSE]
+```
+
+
+## Easier arrays with `abind`
+
+```{r}
+#| echo: true
+
+library(abind)
+
+LL <- list(M1, M2, M3) # e.g., after using map() to read a set of files
+abind(LL, along = 3)
+```
+
