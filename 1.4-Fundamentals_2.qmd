@@ -1,5 +1,6 @@
 ---
 title: "Fundamentals 2"
+subtitle: "Core statistical concepts"
 author:
   - Elizabeth King
   - Kevin Middleton
@@ -43,7 +44,10 @@ Recalling and extending some core concepts from QMLS 1
 
 ## Some suggested references
 
-FIXME
+- *All of Statistics* [@Wasserman2003-nm]
+- *A Primer of Ecological Statistics* [@Gotelli2013-ky]
+- *Statistics* [@Illowsky2020-mf]
+- *Applied Multivariate Statistics in R* [@Bakker2024-mg]
 
 
 ## Univariate normal distribution

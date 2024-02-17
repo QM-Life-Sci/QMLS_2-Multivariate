@@ -1,5 +1,6 @@
 ---
 title: "Fundamentals 1"
+subtitle: "Organizing numbers"
 author:
   - Elizabeth King
   - Kevin Middleton
