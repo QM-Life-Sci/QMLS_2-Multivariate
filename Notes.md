@@ -1,5 +1,8 @@
 ## Motivations
 
+## Maths
+
+*Matrix Algebra Useful for Statistics* [@Searle2017-vd]
 
 ## Dimensionality reduction
 
