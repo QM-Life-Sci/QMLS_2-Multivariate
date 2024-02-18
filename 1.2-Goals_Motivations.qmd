@@ -20,11 +20,15 @@ csl: evolution.csl
 #| message: false
 #| warning: false
 
+library(MASS)
 library(tidyverse)
 library(GGally)
 library(cowplot)
 library(factoextra)
 library(plotly)
+library(nnet)
+library(broom)
+
 theme_set(theme_cowplot())
 
 ```
@@ -201,9 +205,37 @@ anova(fm)
 
 ## Categorical outcome with multiple predictors
 
+**Logistic/Multinomial Regression**
+
 `Site ~ Height + Mouth_Diam + Tube_Diam + Keel_Diam`
 
-FIXME DFA / logistic regression
+```{r}
+#| output: false
+suppressMessages(
+  {fm <- multinom(Site ~ Height + Mouth_Diam + Tube_Diam + Keel_Diam, data = PP)}
+)
+```
+
+```{r}
+tidy(fm, conf.int = TRUE)
+
+```
+
+## Categorical outcome with multiple predictors
+
+**Discriminant Function Analysis**
+
+`Site ~ Height + Mouth_Diam + Tube_Diam + Keel_Diam`
+
+```{r}
+fm <- lda(Site ~ Height + Mouth_Diam + Tube_Diam + Keel_Diam, data = PP, CV = TRUE)
+tt <- table(PP$Site, fm$class)
+```
+
+```{r}
+tt
+sum(diag(tt))/sum(tt) * 100
+```
 
 ## References
 
