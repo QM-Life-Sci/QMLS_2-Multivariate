@@ -45,7 +45,7 @@ x <- 4
 class(x)
 ```
 
-`L` specifies a *long integer*: $\pm 2 \times 10^{-9}$
+`L` specifies a *long integer*: $\pm 2 \times 10^{9}$
 
 ```{r}
 #| echo: true
