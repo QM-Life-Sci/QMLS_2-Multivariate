@@ -132,7 +132,7 @@ fig
 
 ## Variance and covariance
 
-Variance ($s$) = Standard deviation^2^ ($s^2$)
+Variance ($s^2$) = Standard deviation^2^ ($s$)
 
 $$s^2 = \mathrm{Var}(x_1) = \frac{\Sigma(x_{1i} - \bar{x_1})^2}{n - 1}$$
 
