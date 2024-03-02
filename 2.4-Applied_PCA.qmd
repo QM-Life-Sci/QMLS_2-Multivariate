@@ -1,5 +1,6 @@
 ---
 title: "Composite Variables"
+subtitle: "Reducing Dimensions"
 author:
   - Elizabeth King
   - Kevin Middleton

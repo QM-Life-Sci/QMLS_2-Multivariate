@@ -1,0 +1,381 @@
+---
+title: "Basics of Matrix Algebra"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+---
+
+## Some basic matrix attributes
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+ggplot2::theme_set(theme_cowplot())
+set.seed(74237)
+
+```
+
+
+- Square matrices have the same number of rows and columns (e.g. 2x2, 9x9)
+- Symmetric matrices are square matrices that have the same elements in the triangle above and below the diagonal
+    - Correlation and covariance matrices are symmetric
+    
+```{r}
+CC <- round(cor(tibble(x1 = rnorm(12),
+           x2 = rnorm(12),
+           x3 = rnorm(12),
+           x4 = rnorm(12),
+           x5 = rnorm(12),
+           x6 = rnorm(12))), digits = 3)
+
+CC
+
+```
+
+## Some basic matrix attributes
+
+In R, you can extract or assign parts of matrices easily
+
+```{r}
+#| echo: true
+
+diag(CC)
+diag(CC) <- 10
+CC
+
+```
+
+## Some basic matrix attributes
+
+In R, you can extract or assign parts of matrices easily
+
+```{r}
+#| echo: true
+CC 
+
+upper.tri(CC)
+
+CC[upper.tri(CC)]
+
+```
+
+
+## Some basic matrix operations
+
+Major uses relevant to multivariate statistics:
+
+- Linear models can often be solved via matrix algebra
+- Patterns of shared variation can be summarized & composite variables can be created via matrix algebra
+
+Basic operations include:
+
+- Transposition
+- Matrix multiplication 
+- Inversion
+
+
+## FIXME
+
+$$R^{2} = \frac{SS_{model}}{SS_{total}}$$
+
+
+## Transposition
+
+The transpose of a matrix($A$) is denoted $A^{'}$ or $A^{T}$.
+
+- Flip the rows to be columns
+
+```{r}
+#| echo: true
+
+A <- matrix(c(3,7,1,2,5,0,4,0,8), nrow = 3)
+A
+A_T <- t(A)
+A_T
+
+```
+
+## Matrix Multiplication
+
+REF
+
+![](./Images/matrix_mult1.png){fig-align="center" width=80%}
+
+## Matrix Multiplication
+
+- In R, perform matrix multiplication with `%*%`
+- `*` will perform element-wise multiplication (see lecture 1.3)
+
+```{r}
+#| echo: true
+
+A <- matrix(c(3,7,1,2,5,0,4,0,8), nrow = 3)
+B <- matrix(c(6,2,3,1,8,4,0,7,5), nrow = 3)
+
+A%*%B
+
+#Result for `[1,1]` : row 1 of A, column 1 of B
+A[1,1]*B[1,1] + A[1,2]*B[2,1] + A[1,3]*B[3,1]
+
+#Result for `[1,2]` : row 1 of A, column 2 of B
+A[1,1]*B[1,2] + A[1,2]*B[2,2] + A[1,3]*B[3,2]
+```
+
+## Matrix Multiplication
+
+$$AB \neq BA$$ 
+```{r}
+#| echo: true
+
+A%*%B
+B%*%A
+
+#Result for `[1,1]` : row 1 of B, column 1 of A
+B[1,1]*A[1,1] + B[1,2]*A[2,1] + B[1,3]*A[3,1]
+
+#Result for `[1,2]` : row 1 of B, column 2 of A
+B[1,1]*A[1,2] + B[1,2]*A[2,2] + B[1,3]*A[3,2]
+```
+
+## Matrix Multiplication
+
+- For AB to work, the number of columns in A must match the number of rows in B.
+
+- The following cannot be multiplied:
+
+```{r}
+
+M1 <- matrix(1:15, nrow=5)
+M2 <- matrix(20:31, nrow=4)
+
+```
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: true
+M1
+
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: true
+
+M2
+
+```
+
+:::
+
+::::
+
+```{r}
+#| echo: true
+#| eval: false
+
+M1 %*% M2
+
+```
+
+> Error in M1 %*% M2 : non-conformable arguments
+
+## Matrix Multiplication
+
+- For AB to work, the number of columns in A must match the number of rows in B.
+- Dimensions of result will be: number of rows in A x number of columns in B
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: true
+M1
+
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: true
+
+t(M2)
+
+```
+
+:::
+
+::::
+
+```{r}
+#| echo: true
+
+M1 %*% t(M2)
+
+```
+
+
+## $AA^{T}$ is useful for data analysis
+
+![](./Images/matrix_trans.png){fig-align="center" width=75%}
+
+## Inversion
+
+- Single numbers: the inverse of $x$ = $x^{-1}$ = $\frac{1}{x}$
+    - $x*\frac{1}{x} = 1$
+- Matrix: the inverse of $A$ is denoted $A^{-1}$
+    - $AA^{-1} = I$
+- $I$ is the identity matrix    
+- Only square matrices have an inverse (but not all do)
+
+
+```{r}
+diag(x=3)
+```
+
+
+## Inversion
+
+- Need to find a matrix that satisfies: $AA^{-1} = A^{-1}A = I$
+- Consider our example matrix A
+
+```{r}
+A
+```
+
+`3*B[1,1] + 2*B[2,1] + 4*B[3,1] = 1`
+
+`7*B[1,1] + 5*B[2,1] + 0*B[3,1] = 0`
+
+`1*B[1,1] + 0*B[2,1] + 8*B[3,1] = 0`
+
+...
+
+## Determinant & Inversion
+
+- Determinant of $A$ is denoted: $|A|$
+- Complex calculation
+- Useful for calculating the inverse of a matrix
+
+![](./Images/matrix_det.png){fig-align="center" width=40%}
+
+
+## Inversion
+
+```{r}
+#| echo: true
+ 
+AI <- solve(A)
+
+AI
+
+round(A %*% AI, digits = 10)
+
+```
+
+## Solving for a linear model
+
+- Most linear models are solved using basic matrix operations
+- We will show the calculation but won't do the proof showing this solution maximizes the likelihood & minimizes sums of squares 
+
+## Solving for a linear model
+
+- Let's simulate some data:
+
+
+```{r}
+#| echo: true
+
+DD <- tibble(
+             x1 = rnorm(10),
+             x2 = rnorm(10),
+             y = rnorm(10))
+mod <- lm(y ~ x1 + x2, data = DD)
+summary(mod)
+```
+
+## Solving for a linear model
+
+- Finding the standardized regression coefficients
+
+$$B_{i} = R_{ii}^{-1}R_{iy}$$
+$B_{i}$ = standardized regression coefficients
+
+$R_{ii}^{-1}$ = inverse of the correlation matrix among predictors
+
+$R_{iy}$ = column matrix of correlations between the response and predictors
+
+
+## Solving for a linear model
+
+$R_{ii}^{-1}$ = inverse of the correlation matrix among predictors
+
+```{r}
+#| echo: true
+
+Icor <- cor(DD[,c("x1","x2")])
+Icor_inv <- solve(Icor)
+
+Icor
+Icor_inv
+```
+
+## Solving for a linear model
+
+$R_{iy}$ = column matrix of correlations between the response and predictors
+
+```{r}
+#| echo: true
+
+Dcor <- matrix(cor(DD)[1:2,"y"], nrow=2)
+Dcor
+
+```
+
+## Solving for a linear model
+
+```{r}
+#| echo: true
+
+Bst <- Icor_inv %*% Dcor
+Bst
+```
+
+## Solving for a linear model
+
+```{r}
+#| echo: true
+sds <- apply(DD, 2, sd)
+sds <- sds['y']/sds[c('x1','x2')]
+
+Bst*sds
+
+summary(mod)
+```
+
+
+
+
+
+
