@@ -1,6 +1,6 @@
 ---
-title: "Composite Variables"
-subtitle: "Reducing Dimensions"
+title: "Eigenanalysis"
+subtitle: "Consolidating Variance"
 author:
   - Elizabeth King
   - Kevin Middleton
@@ -14,7 +14,7 @@ format:
     show-slide-number: all
 ---
 
-## Motivating Issue
+## Eigenanalysis
 
 ```{r}
 #| label: setup
@@ -23,291 +23,285 @@ format:
 #| message: false
 
 library(tidyverse)
+library(smatr)
 library(cowplot)
 library(factoextra)
 library(readxl)
 library(GGally)
+library(palmerpenguins)
 
 ggplot2::theme_set(theme_cowplot())
 ```
 
-- Biological data are inherently complex & multifaceted. Different variables share variation often.
+- A way to summarize the patterns of variance
+- A way to rotate or repackage data while preserving the patterns
+- Applies to square matrices (e.g. a correlation matrix)
 
-- Challenges
-    - interpretation
-    - separability & co-linearity
-- Benefits
-    - constructing variables more meaningful than proxy measures
-    - more power in some cases
-    
-## Multivariate Data: Squirrels
+## Eigenvalues ($x$) and Eigenvectors ($\lambda$)
 
-![](https://mdc.mo.gov/sites/default/files/styles/gallery_main_image/public/2021-01/Flying%20Sq_alteredCMYK.jpg?itok=JhzJrn7y){fig-align="center"}
+- The set of values that satisfy the following equation:
 
-## Multivariate Data: Squirrels
+\begin{align*}
 
-```{r}
+Ax &= \lambda x\\
+(A - \lambda I)x &= 0
 
-MM <- read_excel("Data/mammals.xlsx", na = "NA") |>
-  filter(family == "Sciuridae" & genus != "Marmota") |>
-  dplyr::select(order, family, genus, species, adult_body_mass_g, adult_head_body_len_mm, diet_breadth, gestation_len_d, habitat_breadth, litter_size,  neonate_body_mass_g, sexual_maturity_age_d) |>
-  rename(adult_mass = adult_body_mass_g,
-         body_length = adult_head_body_len_mm,
-         gest_length = gestation_len_d,
-         neonate_mass = neonate_body_mass_g,
-         maturity_age = sexual_maturity_age_d) |>
-  drop_na() 
+\end{align*}
 
-glimpse(MM)
+- The number of solutions to this equation will be the same as the number of rows & columns (i.e. the number of variables)
+- Each solution is a pair of an eigenvalue and eigenvector
 
-```
 
-## Shared Variation
-
-```{r}
-#| echo: true
-
-cor(MM[,5:12])
-
-```
-
-## Shared Variation
-
-```{r}
-
-ggscatmat((MM[,c(5,6,8,10)]))
-
-```
-
-## Importance of Predictors
-
-Which variables are most important for predicting age at sexual maturity?
-
-```{r}
-
-mod <- lm(maturity_age ~ adult_mass + body_length + diet_breadth + gest_length + habitat_breadth + litter_size + neonate_mass, data = MM)
-
-summary(mod)
-
-```
-
-## Importance of Predictors
-
-Which variables are most important for predicting age at sexual maturity?
-
-```{r}
-
-mod <- lm(maturity_age ~ adult_mass + diet_breadth + gest_length + habitat_breadth + litter_size, data = MM)
-
-summary(mod)
-
-```
-
-
-## Importance of Predictors
-
-Which variables are most important for predicting age at sexual maturity?
-
-```{r}
-
-mod <- lm(maturity_age ~ (adult_mass + diet_breadth + gest_length + habitat_breadth + litter_size)^2, data = MM)
-
-summary(mod)
-
-```
-
-
-## Importance of Predictors
-
-> We use data reduction not because it's perfect but when the alternative is a disaster. One of the worst things you can do with data is to take a huge number of collinear features and predict to find the "right" features that predict Y. The data have no chance of finding the right variables in that setting. Data reduction reduces the problem to an analysis that lives without your sample size and collinearity limitations. - [Frank Harrell](https://stats.stackexchange.com/questions/637773/why-does-harrell-argue-for-ignoring-y-during-data-reduction)
-
-## Partitioning Variance Review
-
-- Model with a single predictor
-
-```{r}
-#| echo: true
-
-mod1 <- lm(maturity_age ~ adult_mass, data = MM)
-summary(mod1)
-
-```
-
-## Partitioning Variance Review {.smaller}
-
-$$R^{2} = \frac{SS_{model}}{SS_{total}}$$
-
-$$R^{2} = 1- \frac{SS_{residual}}{SS_{total}}$$
-
-
-```{r, fig.height =  3, fig.width=4, fig.align='center'}
-
-MM$ypred1 <- mod1$fitted.values
-
-MM |> 
-  ggplot(aes(adult_mass, maturity_age)) +
-  geom_point(size = 2, color = "navy") +
-  geom_smooth(method=lm, color = "firebrick", se = FALSE) +
-  geom_segment(x = MM$adult_mass, xend = MM$adult_mass, y = MM$maturity_age, yend = MM$ypred1, color = "firebrick") +
-  geom_hline(yintercept = mean(MM$maturity_age), linetype = "dotted")
-
-```
-
-## Partitioning Variance Review
-
-$$R^{2}: $$ 
-
-- The squared correlation coefficient between predicted and observed Y values
-
-
-```{r, fig.height =  3, fig.width=4, fig.align='center'}
-
-MM |> 
-  ggplot(aes(ypred1, maturity_age)) +
-  geom_point(size = 2, color = "navy") +
-  xlab("Predicted Y Values")
-
-```
-
-## Partitioning Variance
-
-```{r}
-#| echo: true
-
-summary(mod1)$r.squared
-
-cor(mod1$fitted.values, MM$maturity_age)^2
-
-1-(sum(mod1$residuals^2)/sum((MM$maturity_age-mean(MM$maturity_age))^2))
-
-sum((mod1$fitted.values-mean(MM$maturity_age))^2)/sum((MM$maturity_age-mean(MM$maturity_age))^2)
-
-```
-
-## Partitioning Variance
-
-```{r}
-#| echo: true
-
-var(MM$maturity_age)
-```
-
-```{r}
-MM |> 
-  ggplot(aes(maturity_age)) +
-  geom_histogram(fill = "grey50",bins = 15)
-
-```
-
-## Partitioning Variance
-
-```{r}
-#| echo: true
-
-1- (var(mod1$residuals)/var(MM$maturity_age))
-```
-
-```{r}
-TT <- tibble(residuals = mod1$residuals)
-ggplot(TT, aes(x=residuals)) +
-  geom_histogram(fill = "grey50", bins = 15)
-
-```
-
-
-## Partitioning Variance
-
-```{r}
-#| echo: true
-
-mod2 <- lm(maturity_age ~ adult_mass + body_length + diet_breadth + gest_length + habitat_breadth + litter_size + neonate_mass, data = MM)
-
-mod3 <- lm(maturity_age ~ (adult_mass + diet_breadth + gest_length + habitat_breadth + litter_size)^2, data = MM)
-
-var(MM$maturity_age)
-var(mod1$residuals)
-var(mod2$residuals)
-var(mod3$residuals)
-```
-
-## Partitioning Variance
-
-```{r}
-RR <- tibble(value = c(MM$maturity_age-mean(MM$maturity_age), 
-                       mod1$residuals,
-                       mod2$residuals,
-                       mod3$residuals),
-             data = rep(c("all","m1","m2","m3"),each = nrow(MM)))
-
-RR |>
-  ggplot(aes(x = value, fill = data)) +
-  geom_histogram() +
-  facet_grid(data ~ .)
+## Solving for eigenvalues and eigenvectors 
   
-
-```
-
-## Motivating Issue
-
-- Biological data are inherently complex & multifaceted. Different variables share variation often.
-
-- Challenges
-    - interpretation
-    - separability & co-linearity
-- Benefits
-    - constructing variables more meaningful than proxy measures
-    - more power in some cases
-
-## Land Use Measurements
-
-> How does land use influence pollinator abundance? [fixme - cite]
-https://onlinelibrary.wiley.com/doi/full/10.1002/ece3.4087
-
-- How do we measure "land use"?
-
-## Land Use Measurements
-
 ```{r}
+#| echo: true
 
-lu_d <- read_csv("Data/land_classification.csv") |>
-  select("Site", contains("500")) |>
-  rename(Impervious_surface = Prop_imp500,
-        FlowerRich_habitat  = Prop_flow500,
-        Domestic_infrastructure = Prop_domesticinfrastructure500,
-        Open_land = Prop_open500,
-        Tree_cover = Prop_tree500,
-        Agriculture = Prop_ag500,
-        Gardens = Prop_gard500,
-        Roads = Prop_road500
-  )
+MM <- matrix(1:9, nrow = 3)
 
-glimpse(lu_d)
+EE <- eigen(MM)
+
+#Eigenvalues
+EE$values
+
+#Eigenvectors
+EE$vectors
 
 ```
 
-## Principal Components Analysis
+
+## Solving for eigenvalues and eigenvectors 
+  
+$$Ax = \lambda x$$
 
 ```{r}
 #| echo: true
 
-ss <- prcomp(lu_d[,2:9], scale. = TRUE, center = TRUE)
+MM %*% EE$vectors[,1,drop=FALSE]
 
-summary(ss)
+EE$values[1]*EE$vectors[,1, drop=FALSE]
 
 ```
 
-## Principal Components Analysis
+## Eigenanalysis and Multivariate Methods
+
+- Performing an eigenanalysis on a covariance or correlation matrix 
+- Allows us to consolidate and reorganize data without changing the relationships between data points
+- Creates new variables that are combinations of variables
+
+
+
+## PCA Example: Penguins
+
+- Drop any rows with missing values
+- Center and scale all variables
+
+```{r}
+#| echo: true
+
+glimpse(penguins)
+
+penguins_vars <- penguins |>
+  dplyr::select(body_mass_g, ends_with("_mm")) |>
+  drop_na() |>
+  mutate_all(~(scale(.)))
+```
+
+
+## PCA Example: Penguins
+
+```{r}
+#| echo: true
+
+ggscatmat(penguins_vars) 
+
+```
+
+## Covariance Matrix
+
+Because variables are standardized, `cor(penguins_vars) == cov(penguins_vars)`
+
+```{r}
+#| echo: true
+
+(pen_cov <- cov(penguins_vars))
+
+cor(penguins_vars)
+```
+
+## PCA & Eigenanalysis
+
+```{r}
+#| echo: true
+
+EE <- eigen(pen_cov)
+EE$values
+EE$vectors
+
+pen_pca <- prcomp(penguins_vars, center = TRUE, scale. = TRUE)
+pen_pca$sdev^2  # prcomr() returns sd
+pen_pca$rotation
+
+```
+
+
+## Consolidating Variance
+
+```{r}
+#| echo: true
+
+pen_cov
+
+#total variation 
+sum(diag(pen_cov))
+
+#transformed correlation matrix after eigenanalysis
+round(cov(pen_pca$x), digits = 10)
+#total variation
+sum(diag(cov(pen_pca$x)))
+
+```
+
+
+## Rotating Data
+
+- Consider just 2 variables for visualization of the process
 
 ```{r}
 
-fviz_pca_var(ss, addlabels = TRUE, repel = TRUE)
+p1 <- penguins_vars |>
+  ggplot(aes(body_mass_g, flipper_length_mm)) +
+  geom_point()
+
+p2 <- penguins |>
+  ggplot(aes(body_mass_g, flipper_length_mm)) +
+  geom_point()
+
+plot_grid(p1,p2, ncol=2)
+
 
 ```
 
-## Composite Variables
 
-- Create a new holistic variable 
-- Reduce dimensionality
-- A way to quantify and describe shared variance
-- Separates shared variation into independent sets
+## Rotating Data
+
+```{r}
+
+ma <- line.cis(penguins_vars$body_mass_g, penguins_vars$flipper_length_mm,
+               method = "MA")
+
+p3 <- p1 + geom_abline(slope = ma[2, 1], intercept = ma[1, 1],
+                 color = "red",
+                 linewidth = 1.5) +
+  geom_abline(slope = -1/ma[2, 1],
+              intercept = mean(penguins_vars$body_mass_g) - -1/ma[2, 1] * mean(penguins_vars$flipper_length_mm),
+              color = "red",
+              size = 1.5) +
+  coord_fixed()
+
+p3
+```
+
+## Rotating Data 
+
+```{r}
+
+pc2 <- prcomp(penguins_vars[c(1,4)], center = TRUE, scale. = TRUE)
+pc_p <- tibble(PC1 = pc2$x[,1],
+               PC2 = pc2$x[,2])
+
+p4 <- ggplot(pc_p, aes(PC1,PC2)) +
+  geom_point() +
+  geom_hline(yintercept = 0, color = "red", size = 1.5) +
+  geom_vline(xintercept = 0, color = "red", size = 1.5)
+p4
+```
+
+
+
+## Rotating Data 
+
+- identifying and computing a new coordinate system for the data
+- observations have the same relationship WRT one another
+- set of composite variables that are uncorrelated
+- variables have redistributed variances
+
+## Finding the new coordinate system
+
+$$P = SZ^{T}$$
+
+- $P$ is the matrix of PC scores
+- $S$ is the unknown transformation matrix
+- $Z^T$ is the transpose of the standardized data matrix
+
+
+## Finding the new coordinate system
+
+We can calculate this from: eigenvectors, eigenvalues, covariance matrix, and the data matrix.
+
+```{r}
+#| echo: true
+
+L_mat <- pen_pca$rotation %*% (pen_pca$sdev^2 * diag(x = 4))
+
+PC_scores <- t(L_mat) %*% solve(pen_cov) %*% t(penguins_vars)
+
+t(PC_scores[,1:5])
+
+pen_pca$x[1:5,]
+
+```
+
+## Finding the new coordinate system
+
+- From the equations of the composite variables
+- Coefficients are given by the eigenvectors
+
+$$PC1_{i} = \beta_{1}z_{1,i} + \beta_{2}z_{2,i} + \beta_{3}z_{3,i} + \beta_{4}z_{4,i}$$
+
+- $\beta_1 \dots \beta_4$ are the 4 elements of the PC1 column of the rotation matrix
+- $z_{1,i} \dots z_{4,i}$ is the *i*th row of the data
+
+
+## Finding the new coordinate system
+
+```{r}
+#| echo: true
+eig1 <- pen_pca$rotation[,"PC1"]
+o1 <- penguins_vars[1,]
+eig1
+o1
+sum(eig1*o1)
+pen_pca$x[1,1]
+```
+
+## How much does each variable contribute to the composite?
+
+- Eigenvectors = standardized coefficients
+- Loadings = correlation of each variable with each PC
+- Loadings are eigenvectors scaled by the standard deviation of each PC
+    - Warning: R calls the eigenvectors "loadings"
+
+## How much does each variable contribute to the composite?
+
+```{r}
+#| echo: true
+
+pen_pca$rotation 
+
+pen_pca$rotation[,"PC2"] * pen_pca$sdev[2]
+
+cor(penguins_vars, pen_pca$x)
+```
+
+## Biplot
+
+```{r}
+library()
+fviz_pca_var(pen_pca, addlabels = TRUE, repel = TRUE)
+```
+
+
+
+
 
