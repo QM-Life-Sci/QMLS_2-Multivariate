@@ -38,17 +38,19 @@ set.seed(74237)
 
 ## Some basic matrix attributes
 
-- Square matrices have the same number of rows and columns (e.g. 2x2, 9x9)
-- Symmetric matrices are square matrices that have the same elements in the triangle above and below the diagonal
+- *Square matrices*: same number of rows and columns (e.g., 2x2, 9x9)
+- *Symmetric matrices*: square matrices that have the same elements in the triangles above and below the diagonal
     - Correlation and covariance matrices are symmetric
     
 ```{r}
+
 CC <- round(cor(tibble(x1 = rnorm(12),
-           x2 = rnorm(12),
-           x3 = rnorm(12),
-           x4 = rnorm(12),
-           x5 = rnorm(12),
-           x6 = rnorm(12))), digits = 3)
+                       x2 = rnorm(12),
+                       x3 = rnorm(12),
+                       x4 = rnorm(12),
+                       x5 = rnorm(12),
+                       x6 = rnorm(12))),
+            digits = 3)
 
 CC
 
@@ -57,7 +59,7 @@ CC
 
 ## Some basic matrix attributes
 
-In R, you can extract or assign parts of matrices easily
+In R, you can easily extract or assign parts of matrices
 
 ```{r}
 #| echo: true
@@ -70,8 +72,6 @@ CC
 
 ## Some basic matrix attributes
 
-In R, you can extract or assign parts of matrices easily
-
 ```{r}
 #| echo: true
 CC 
@@ -83,10 +83,11 @@ CC[upper.tri(CC)]
 ```
 
 
-## Some basic matrix operations
+## Operations with matrices
 
 Basic operations include:
 
+- Elementwise addition/subtraction, multiplication/division (see lecture 1.3)
 - Transposition
 - Matrix multiplication 
 - Inversion
@@ -94,9 +95,9 @@ Basic operations include:
 
 ## Transposition
 
-The transpose of a matrix($A$) is denoted $A^{'}$ or $A^{T}$.
+The transpose of a matrix($A$) is denoted $A'$ or $A^{T}$.
 
-- Flip the rows to be columns
+- Flip the rows to be the columns
 
 ```{r}
 #| echo: true
@@ -107,6 +108,7 @@ A_T <- t(A)
 A_T
 
 ```
+
 
 ## Matrix Multiplication
 
@@ -120,7 +122,7 @@ From Tabachnick and Fidell [-@Tabachnick2019-tl]
 ## Matrix Multiplication
 
 - In R, perform matrix multiplication with `%*%`
-- `*` will perform element-wise multiplication (see lecture 1.3)
+- `*` will perform elementwise multiplication (see lecture 1.3)
 
 ```{r}
 #| echo: true
@@ -137,24 +139,25 @@ A[1,1]*B[1,1] + A[1,2]*B[2,1] + A[1,3]*B[3,1]
 A[1,1]*B[1,2] + A[1,2]*B[2,2] + A[1,3]*B[3,2]
 ```
 
-## Matrix Multiplication
+## Matrix product is not commutative
 
-$$AB \neq BA$$ 
+$$AB \neq BA$$
+
 ```{r}
 #| echo: true
 
-A%*%B
-B%*%A
+A %*% B
+B %*% A
 
-#Result for `[1,1]` : row 1 of B, column 1 of A
-B[1,1]*A[1,1] + B[1,2]*A[2,1] + B[1,3]*A[3,1]
+# Result for `[1,1]` : row 1 of B, column 1 of A
+B[1, 1] * A[1, 1] + B[1, 2] * A[2, 1] + B[1, 3] * A[3, 1]
 
-#Result for `[1,2]` : row 1 of B, column 2 of A
-B[1,1]*A[1,2] + B[1,2]*A[2,2] + B[1,3]*A[3,2]
+# Result for `[1,2]` : row 1 of B, column 2 of A
+B[1, 1] * A[1, 2] + B[1, 2] * A[2, 2] + B[1, 3] * A[3, 2]
 ```
 
 
-## Matrix Multiplication: $A \times B$
+## Matrix Multiplication: $A ~ B$
 
 - Number of columns in A must match number of rows in B.
 - The following cannot be multiplied:
@@ -202,7 +205,7 @@ M1 %*% M2
 > Error in M1 %*% M2 : non-conformable arguments
 
 
-## Matrix Multiplication: $A \times B$
+## Matrix Multiplication: $A ~ B$
 
 - Number of columns in A must match number of rows in B.
 - Resulting dimensions will be: `nrows(A)` by `ncol(A)`
@@ -244,11 +247,11 @@ M1 %*% t(M2)
 
 $N$s have to match:
 
-$$[M~by~N] \times [N~by~P] $$
+$$[M \times N] ~ [N \times P] $$
 
 Results in:
 
-$$[M~by~P]$$
+$$[M \times P]$$
 
 
 ## $AA^{T}$ is useful for data analysis
@@ -265,22 +268,21 @@ From Tabachnick and Fidell [-@Tabachnick2019-tl]
 
 ## Inversion
 
-- Single numbers: the inverse of $x$ = $x^{-1}$ = $\frac{1}{x}$
-    - $x*\frac{1}{x} = 1$
+- Scalar numbers: the inverse of $x$ = $x^{-1}$ = $\frac{1}{x}$
+    - $x ~ \frac{1}{x} = 1$
 - Matrix: the inverse of $A$ is denoted $A^{-1}$
     - $AA^{-1} = I$
-- $I$ is the identity matrix    
+    - $I$ is the identity matrix    
 - Only square matrices have an inverse (but not all do)
 
-
 ```{r}
-diag(x=3)
+diag(x = 3)
 ```
 
 
 ## Inversion
 
-- Need to find a matrix that satisfies: $AA^{-1} = A^{-1}A = I$
+- Need a matrix that satisfies: $AA^{-1} = A^{-1}A = I$
 - Consider our example matrix A
 
 ```{r}
@@ -295,10 +297,11 @@ A
 
 ...
 
+
 ## Determinant & Inversion
 
 - Determinant of $A$ is denoted: $|A|$
-- Complex calculation
+- Complex calculation (several different ways)
 - Useful for calculating the inverse of a matrix
 
 ![](./Images/matrix_det.png){fig-align="center" width=40%}
@@ -308,7 +311,7 @@ From Tabachnick and Fidell [-@Tabachnick2019-tl]
 </div>
 
 
-## Inversion
+## Inversion with `solve()`
 
 ```{r}
 #| echo: true
@@ -319,13 +322,16 @@ AI
 
 round(A %*% AI, digits = 10)
 
+round(AI %*% A, digits = 10)
+
 ```
+
 
 ## Solving for a linear model
 
 - Most linear models are solved using basic matrix operations
 - Show the calculation 
-- Won't do the proof showing this solution maximizes the likelihood and minimizes sums of squares 
+- Won't show the proof that this solution maximizes the likelihood and minimizes sums of squares 
 
 Use it without understanding *why* it works.
 
@@ -369,9 +375,7 @@ coef(mod)
 ```
 
 
-## Solving for a linear model
-
-- Finding the standardized regression coefficients
+## Solving for standardized regression coefficients
 
 $$B_{i} = R_{ii}^{-1}R_{iy}$$
 $B_{i}$ = standardized regression coefficients
@@ -388,7 +392,7 @@ $R_{ii}^{-1}$ = inverse of the correlation matrix among predictors
 ```{r}
 #| echo: true
 
-Icor <- cor(DD[,c("x1","x2")])
+Icor <- cor(DD[ , c("x1", "x2")])
 Icor_inv <- solve(Icor)
 
 Icor
@@ -402,10 +406,11 @@ $R_{iy}$ = column matrix of correlations between the response and predictors
 ```{r}
 #| echo: true
 
-Dcor <- matrix(cor(DD)[1:2,"y"], nrow=2)
+Dcor <- matrix(cor(DD)[1:2, "y"], nrow = 2)
 Dcor
 
 ```
+
 
 ## Solving using the correlation matrix
 
@@ -416,16 +421,17 @@ Bst <- Icor_inv %*% Dcor
 Bst
 ```
 
-## Solving using the correlation matrix
+
+## Unstandardizing the coefficients
 
 ```{r}
 #| echo: true
 sds <- apply(DD, 2, sd)
-sds <- sds['y']/sds[c('x1','x2')]
+sds <- sds['y'] / sds[c('x1', 'x2')]
 
-Bst*sds
+Bst * sds
 
-summary(mod)
+coef(mod)
 ```
 
 
@@ -433,8 +439,3 @@ summary(mod)
 
 ::: {#refs}
 :::
-
-
-
-
-
