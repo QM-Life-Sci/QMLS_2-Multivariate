@@ -35,6 +35,8 @@ set.seed(74237)
 - Linear models can often be solved via matrix algebra
 - Patterns of shared variation can be summarized & composite variables can be created via matrix algebra
 
+For more information see Tabachnick and Fidell [-@Tabachnick2019-tl] and Bakker [-@Bakker2024-mg]
+
 
 ## Some basic matrix attributes
 
@@ -208,7 +210,7 @@ M1 %*% M2
 ## Matrix Multiplication: $A ~ B$
 
 - Number of columns in A must match number of rows in B.
-- Resulting dimensions will be: `nrows(A)` by `ncol(A)`
+- Resulting dimensions will be: `nrows(A)` by `ncol(B)`
 
 :::: {.columns}
 

@@ -42,7 +42,7 @@ ggplot2::theme_set(theme_cowplot())
 For more information see Tabachnick and Fidell [-@Tabachnick2019-tl] and Bakker [-@Bakker2024-mg]
 
 
-## Eigenvalues ($x$) and Eigenvectors ($\lambda$)
+## Eigenvalues ($\lambda$) and Eigenvectors ($x$)
 
 - The set of values that satisfy the following equation:
 
@@ -231,7 +231,7 @@ p4
 ## Rotating Data 
 
 - Identifying and computing a new coordinate system for the data
-- Observations have the same relationship WRT one another
+- Observations have the same relationship with respect to one another
 - Set of composite variables that are uncorrelated
 - Variables have redistributed variances
 
