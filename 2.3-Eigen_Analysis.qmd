@@ -12,6 +12,8 @@ format:
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
+bibliography: Multivariate.bib
+csl: evolution.csl
 ---
 
 ## Eigenanalysis
@@ -35,7 +37,10 @@ ggplot2::theme_set(theme_cowplot())
 
 - A way to summarize the patterns of variance
 - A way to rotate or repackage data while preserving the patterns
-- Applies to square matrices (e.g. a correlation matrix)
+- Applies to square matrices (e.g., a correlation matrix)
+
+For more information see Tabachnick and Fidell [-@Tabachnick2019-tl] and Bakker [-@Bakker2024-mg]
+
 
 ## Eigenvalues ($x$) and Eigenvectors ($\lambda$)
 
@@ -43,12 +48,12 @@ ggplot2::theme_set(theme_cowplot())
 
 \begin{align*}
 
-Ax &= \lambda x\\
+              Ax &= \lambda x\\
 (A - \lambda I)x &= 0
 
 \end{align*}
 
-- The number of solutions to this equation will be the same as the number of rows & columns (i.e. the number of variables)
+- The number of solutions to this equation will be the same as the number of rows & columns (i.e., the number of variables)
 - Each solution is a pair of an eigenvalue and eigenvector
 
 
@@ -61,11 +66,12 @@ MM <- matrix(1:9, nrow = 3)
 
 EE <- eigen(MM)
 
-#Eigenvalues
-EE$values
-
-#Eigenvectors
-EE$vectors
+EE$values   # Eigenvalues
+```
+<br/>
+```{r}
+#| echo: true
+EE$vectors  # Eigenvectors
 
 ```
 
@@ -77,18 +83,18 @@ $$Ax = \lambda x$$
 ```{r}
 #| echo: true
 
-MM %*% EE$vectors[,1,drop=FALSE]
+MM %*% EE$vectors[ , 1, drop = FALSE]
 
-EE$values[1]*EE$vectors[,1, drop=FALSE]
+EE$values[1] * EE$vectors[ , 1, drop = FALSE]
 
 ```
+
 
 ## Eigenanalysis and Multivariate Methods
 
 - Performing an eigenanalysis on a covariance or correlation matrix 
 - Allows us to consolidate and reorganize data without changing the relationships between data points
 - Creates new variables that are combinations of variables
-
 
 
 ## PCA Example: Penguins
@@ -117,9 +123,10 @@ ggscatmat(penguins_vars)
 
 ```
 
+
 ## Covariance Matrix
 
-Because variables are standardized, `cor(penguins_vars) == cov(penguins_vars)`
+Because variables are standardized, `cor(penguins_vars)` == `cov(penguins_vars)`
 
 ```{r}
 #| echo: true
@@ -128,6 +135,7 @@ Because variables are standardized, `cor(penguins_vars) == cov(penguins_vars)`
 
 cor(penguins_vars)
 ```
+
 
 ## PCA & Eigenanalysis
 
@@ -179,7 +187,6 @@ p2 <- penguins |>
 
 plot_grid(p1,p2, ncol=2)
 
-
 ```
 
 
@@ -190,11 +197,13 @@ plot_grid(p1,p2, ncol=2)
 ma <- line.cis(penguins_vars$body_mass_g, penguins_vars$flipper_length_mm,
                method = "MA")
 
-p3 <- p1 + geom_abline(slope = ma[2, 1], intercept = ma[1, 1],
-                 color = "red",
-                 linewidth = 1.5) +
+p3 <- p1 + 
+  geom_abline(slope = ma[2, 1], intercept = ma[1, 1],
+              color = "red",
+              linewidth = 1.5) +
   geom_abline(slope = -1/ma[2, 1],
-              intercept = mean(penguins_vars$body_mass_g) - -1/ma[2, 1] * mean(penguins_vars$flipper_length_mm),
+              intercept = mean(penguins_vars$body_mass_g) - -1/ma[2, 1] * 
+                mean(penguins_vars$flipper_length_mm),
               color = "red",
               size = 1.5) +
   coord_fixed()
@@ -221,10 +230,11 @@ p4
 
 ## Rotating Data 
 
-- identifying and computing a new coordinate system for the data
-- observations have the same relationship WRT one another
-- set of composite variables that are uncorrelated
-- variables have redistributed variances
+- Identifying and computing a new coordinate system for the data
+- Observations have the same relationship WRT one another
+- Set of composite variables that are uncorrelated
+- Variables have redistributed variances
+
 
 ## Finding the new coordinate system
 
@@ -252,6 +262,7 @@ pen_pca$x[1:5,]
 
 ```
 
+
 ## Finding the new coordinate system
 
 - From the equations of the composite variables
@@ -275,12 +286,14 @@ sum(eig1*o1)
 pen_pca$x[1,1]
 ```
 
+
 ## How much does each variable contribute to the composite?
 
 - Eigenvectors = standardized coefficients
 - Loadings = correlation of each variable with each PC
 - Loadings are eigenvectors scaled by the standard deviation of each PC
     - Warning: R calls the eigenvectors "loadings"
+
 
 ## How much does each variable contribute to the composite?
 
@@ -289,7 +302,7 @@ pen_pca$x[1,1]
 
 pen_pca$rotation 
 
-pen_pca$rotation[,"PC2"] * pen_pca$sdev[2]
+pen_pca$rotation[ , "PC2"] * pen_pca$sdev[2]
 
 cor(penguins_vars, pen_pca$x)
 ```
@@ -297,11 +310,11 @@ cor(penguins_vars, pen_pca$x)
 ## Biplot
 
 ```{r}
-library()
 fviz_pca_var(pen_pca, addlabels = TRUE, repel = TRUE)
 ```
 
 
+## References
 
-
-
+::: {#refs}
+:::
