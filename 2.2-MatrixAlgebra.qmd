@@ -11,9 +11,12 @@ format:
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
+bibliography: Multivariate.bib
+csl: evolution.csl
 ---
 
-## Some basic matrix attributes
+## Major uses relevant to multivariate statistics:
+
 
 ```{r}
 #| label: setup
@@ -28,6 +31,12 @@ set.seed(74237)
 
 ```
 
+
+- Linear models can often be solved via matrix algebra
+- Patterns of shared variation can be summarized & composite variables can be created via matrix algebra
+
+
+## Some basic matrix attributes
 
 - Square matrices have the same number of rows and columns (e.g. 2x2, 9x9)
 - Symmetric matrices are square matrices that have the same elements in the triangle above and below the diagonal
@@ -44,6 +53,7 @@ CC <- round(cor(tibble(x1 = rnorm(12),
 CC
 
 ```
+
 
 ## Some basic matrix attributes
 
@@ -75,21 +85,11 @@ CC[upper.tri(CC)]
 
 ## Some basic matrix operations
 
-Major uses relevant to multivariate statistics:
-
-- Linear models can often be solved via matrix algebra
-- Patterns of shared variation can be summarized & composite variables can be created via matrix algebra
-
 Basic operations include:
 
 - Transposition
 - Matrix multiplication 
 - Inversion
-
-
-## FIXME
-
-$$R^{2} = \frac{SS_{model}}{SS_{total}}$$
 
 
 ## Transposition
@@ -110,9 +110,12 @@ A_T
 
 ## Matrix Multiplication
 
-REF
-
 ![](./Images/matrix_mult1.png){fig-align="center" width=80%}
+
+<div class="ref">
+From Tabachnick and Fidell [-@Tabachnick2019-tl]
+</div>
+
 
 ## Matrix Multiplication
 
@@ -150,10 +153,10 @@ B[1,1]*A[1,1] + B[1,2]*A[2,1] + B[1,3]*A[3,1]
 B[1,1]*A[1,2] + B[1,2]*A[2,2] + B[1,3]*A[3,2]
 ```
 
-## Matrix Multiplication
 
-- For AB to work, the number of columns in A must match the number of rows in B.
+## Matrix Multiplication: $A \times B$
 
+- Number of columns in A must match number of rows in B.
 - The following cannot be multiplied:
 
 ```{r}
@@ -198,10 +201,11 @@ M1 %*% M2
 
 > Error in M1 %*% M2 : non-conformable arguments
 
-## Matrix Multiplication
 
-- For AB to work, the number of columns in A must match the number of rows in B.
-- Dimensions of result will be: number of rows in A x number of columns in B
+## Matrix Multiplication: $A \times B$
+
+- Number of columns in A must match number of rows in B.
+- Resulting dimensions will be: `nrows(A)` by `ncol(A)`
 
 :::: {.columns}
 
@@ -236,9 +240,28 @@ M1 %*% t(M2)
 ```
 
 
+## Shorthand reminder
+
+$N$s have to match:
+
+$$[M~by~N] \times [N~by~P] $$
+
+Results in:
+
+$$[M~by~P]$$
+
+
 ## $AA^{T}$ is useful for data analysis
 
-![](./Images/matrix_trans.png){fig-align="center" width=75%}
+![](./Images/matrix_trans.png){fig-align="center" width=65%}
+
+- Diagonals are sums of squares
+- Upper and lower triangles are also useful
+
+<div class="ref">
+From Tabachnick and Fidell [-@Tabachnick2019-tl]
+</div>
+
 
 ## Inversion
 
@@ -280,6 +303,10 @@ A
 
 ![](./Images/matrix_det.png){fig-align="center" width=40%}
 
+<div class="ref">
+From Tabachnick and Fidell [-@Tabachnick2019-tl]
+</div>
+
 
 ## Inversion
 
@@ -297,12 +324,15 @@ round(A %*% AI, digits = 10)
 ## Solving for a linear model
 
 - Most linear models are solved using basic matrix operations
-- We will show the calculation but won't do the proof showing this solution maximizes the likelihood & minimizes sums of squares 
+- Show the calculation 
+- Won't do the proof showing this solution maximizes the likelihood and minimizes sums of squares 
+
+Use it without understanding *why* it works.
+
 
 ## Solving for a linear model
 
-- Let's simulate some data:
-
+Simulate some data:
 
 ```{r}
 #| echo: true
@@ -314,6 +344,30 @@ DD <- tibble(
 mod <- lm(y ~ x1 + x2, data = DD)
 summary(mod)
 ```
+
+
+## Solving for coefficients directly
+
+```{r}
+#| echo: true
+
+(y <- matrix(DD$y, ncol = 1))
+(X <- cbind(matrix(rep(1, times = nrow(DD))),
+            as.matrix(DD[, 1:2])))
+```
+
+
+## Solving for coefficients directly
+
+$$B = \left(X^T ~ X \right)^{-1}~\left( X^T~y \right)$$
+
+```{r}
+#| echo: true
+
+solve(t(X) %*% X) %*% (t(X) %*% y)
+coef(mod)
+```
+
 
 ## Solving for a linear model
 
@@ -327,7 +381,7 @@ $R_{ii}^{-1}$ = inverse of the correlation matrix among predictors
 $R_{iy}$ = column matrix of correlations between the response and predictors
 
 
-## Solving for a linear model
+## Solving using the correlation matrix
 
 $R_{ii}^{-1}$ = inverse of the correlation matrix among predictors
 
@@ -341,7 +395,7 @@ Icor
 Icor_inv
 ```
 
-## Solving for a linear model
+## Solving using the correlation matrix
 
 $R_{iy}$ = column matrix of correlations between the response and predictors
 
@@ -353,7 +407,7 @@ Dcor
 
 ```
 
-## Solving for a linear model
+## Solving using the correlation matrix
 
 ```{r}
 #| echo: true
@@ -362,7 +416,7 @@ Bst <- Icor_inv %*% Dcor
 Bst
 ```
 
-## Solving for a linear model
+## Solving using the correlation matrix
 
 ```{r}
 #| echo: true
@@ -374,6 +428,11 @@ Bst*sds
 summary(mod)
 ```
 
+
+## References
+
+::: {#refs}
+:::
 
 
 
