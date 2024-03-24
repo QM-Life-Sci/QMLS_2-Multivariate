@@ -40,7 +40,13 @@ theme_set(theme_cowplot())
 
 ## Working with matrices and arrays
 
-![](https://raw.githubusercontent.com/QM-Life-Sci/QMLS_2-Multivariate/main/Images/fly_wing.png){fig-align="center"}
+Teh
+
+![](https://raw.githubusercontent.com/QM-Life-Sci/QMLS_2-Multivariate/main/Images/fly_wing.png?raw=true){fig-align="center"}
+
+![](https://www.github.com/QM-Life-Sci/QMLS_2-Multivariate/raw/main/Images/fly_wing.png){fig-align="center"}
+
+
 
 ```{r}
 # FIXME
