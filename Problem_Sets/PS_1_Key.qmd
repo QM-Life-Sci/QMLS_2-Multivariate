@@ -41,3 +41,16 @@ theme_set(theme_cowplot())
 ## Working with matrices and arrays
 
 ![](https://raw.githubusercontent.com/QM-Life-Sci/QMLS_2-Multivariate/main/Images/fly_wing.png){fig-align="center"}
+
+```{r}
+# FIXME
+
+flist <- list.files(path = "../Data/wing_landmarks/",
+                    pattern = ".csv",
+                    full.names = TRUE)
+
+flist[1:5]
+
+
+```
+
