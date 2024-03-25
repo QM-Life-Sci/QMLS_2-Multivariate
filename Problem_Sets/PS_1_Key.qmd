@@ -209,7 +209,7 @@ What are you general impressions of the distribution of centroid sizes?
 
 > They are pretty normally distributed. There are a couple of small wings that might need some investigation further.
 
-3D arrays like this -- where the first dimension is the landmarks in sequence, the second dimension is the X, Y, (and Z) columns, and the third dimension is the specimens -- are the standard data format for carrying out geometric morphometric analyses in R using the [`geomorph` package](https://cran.r-project.org/package=geomorph).
+3D arrays like this -- where the first dimension is the landmarks in rows, the second dimension is the X, Y, (and Z) columns, and the third dimension is the specimens -- are the standard data format for carrying out geometric morphometric analyses in R using the [`geomorph` package](https://cran.r-project.org/package=geomorph).
 
 
 ## Working with correlated data
