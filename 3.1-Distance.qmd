@@ -24,6 +24,7 @@ format:
 library(tidyverse)
 library(cowplot)
 library(readxl)
+library(gt)
 
 ggplot2::theme_set(theme_cowplot())
 ```
@@ -31,10 +32,217 @@ ggplot2::theme_set(theme_cowplot())
 
 ## Unit outline
 
-1. Distance
+1. Distance measures
 2. Correlations between matrices of measures
 3. Multivariate ANOVA (MANOVA)
-4. Permutation-based MANOVA (PERMANOVA)
+4. Permutation-based MANOVA (PerMANOVA)
 
 
-## 
+## Dissimilarity and Distance
+
+*Dissimilarity*: qualitative; "how different are these data?"
+
+*Distance*: quantitative measure of similarity / dissimilarity
+
+
+## Quantifying distance
+
+:::: {.columns}
+
+::: {.column width="70%"}
+
+![](./Images/quercus-rubra-844639_1280.jpg)
+
+:::
+
+::: {.column width="30%"}
+
+```{r}
+q1 <- tribble(~ Site, ~ Quercus,
+              "A", 5,
+              "B", 19)
+q1 |> 
+  gt() |> 
+  cols_label(Quercus = md("*Quercus*")) |> 
+  tab_options(table.font.size = 36)
+```
+
+$$ 19 - 5 = 14$$
+
+:::
+
+::::
+
+
+## Quantifying distance
+
+```{r}
+q2 <- tribble(~ Site, ~ Q_alba, ~ Q_rubra,
+              "A", 3, 2,
+              "B", 12, 7)
+q2 |> 
+  gt() |> 
+  cols_label(Q_alba = md("*Q. alba*"),
+             Q_rubra = md("*Q. rubra*")) |> 
+  tab_options(table.font.size = 36)
+```
+
+$$ 12 - 3 = 14$$
+
+$$7 - 2 = 5$$
+
+
+## Quantifying distance
+
+```{r}
+#| fig-align: center
+#| fig-width: 9
+#| fig-height: 5
+
+ggplot(q2, aes(Q_alba, Q_rubra)) +
+  geom_point(size = 7, color = "firebrick4") +
+  scale_x_continuous(breaks = 0:15) +
+  scale_y_continuous(breaks = 0:8) +
+  labs(x = "Q. alba", y = "Q. rubra") +
+  theme(axis.title = element_text(face = "italic"))
+```
+
+
+## Quantifying distance
+
+```{r}
+#| fig-align: center
+#| fig-width: 9
+#| fig-height: 5
+
+ggplot(q2, aes(Q_alba, Q_rubra)) +
+  geom_point(size = 7, color = "firebrick4", alpha = 0.5) +
+  geom_line(linewidth = 2, color = "firebrick4",
+            arrow = arrow(length = unit(0.5, "cm"))) +
+  scale_x_continuous(breaks = 0:15) +
+  scale_y_continuous(breaks = 0:8) +
+  labs(x = "Q. alba", y = "Q. rubra") +
+  theme(axis.title = element_text(face = "italic"))
+```
+
+
+## Euclidean distance
+
+\begin{align*}
+d &= \sqrt{(Qa_A - Qa_B)^2 + (Qr_A - Qr_B)^2}\\
+  &= \sqrt{(3 - 12)^2 + (2 - 7)^2}\\
+  &= \sqrt{-9^2 + -5^2}\\
+  &= \sqrt(81 + 25)\\
+  &= \sqrt(106)\\
+  &= 10.3
+\end{align*}
+
+
+## Euclidean distance with `dist()`
+
+```{r}
+#| echo: true
+
+dist(q2[, 2:3], method = "euclidean")
+```
+
+- Euclidean distance is the default `dist`
+
+
+## Comparing distances
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{r}
+q2 |> 
+  gt() |> 
+  cols_label(Q_alba = md("*Q. alba*"),
+             Q_rubra = md("*Q. rubra*")) |> 
+  tab_options(table.font.size = 36)
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+q3 <- tribble(~ Site, ~ Q_alba, ~ Q_rubra,
+              "A", 6, 5,
+              "B", 6, 7)
+q3 |> 
+  gt() |> 
+  cols_label(Q_alba = md("*Q. alba*"),
+             Q_rubra = md("*Q. rubra*")) |> 
+  tab_options(table.font.size = 36)
+```
+
+:::
+
+::::
+
+```{r}
+#| echo: true
+
+dist(q2[, 2:3], method = "euclidean")
+dist(q3[, 2:3], method = "euclidean")
+
+```
+
+
+## Scale
+
+```{r}
+#| echo: true
+
+dist(q2[, 2:3] * 5, method = "euclidean")
+dist(q3[, 2:3] * 10, method = "euclidean")
+
+```
+
+
+## More sites
+
+```{r}
+q4 <- tribble(~ Site, ~ Q_alba, ~ Q_rubra,
+              "A", 3, 2,
+              "B", 12, 7,
+              "C", 8, 3)
+q4 |> 
+  gt() |> 
+  cols_label(Q_alba = md("*Q. alba*"),
+             Q_rubra = md("*Q. rubra*")) |> 
+  tab_options(table.font.size = 36)
+
+dist(q4[, 2:3], method = "euclidean")
+```
+
+
+## More species
+
+```{r}
+q5 <- tribble(~ Site, ~ Q_alba, ~ Q_rubra, ~ Q_macrocarpa,
+              "A", 3, 2, 1,
+              "B", 12, 7, 2)
+q5 |> 
+  gt() |> 
+  cols_label(Q_alba = md("*Q. alba*"),
+             Q_rubra = md("*Q. rubra*"),
+             Q_macrocarpa = md("*Q. macrocarpa*")) |> 
+  tab_options(table.font.size = 36)
+```
+
+```{r}
+#| echo: true
+
+dist(q5[, 2:4], method = "euclidean")
+```
+
+
+## Considerations
+
+- Scale
+- Number of species
+- Number of sites
+    - How to combine distances?
