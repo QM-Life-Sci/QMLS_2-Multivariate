@@ -1,6 +1,6 @@
 ---
-title: "Composite Variables"
-subtitle: "Reducing Dimensions"
+title: "Applied PCA"
+subtitle: "An incomplete tour of example use cases"
 author:
   - Elizabeth King
   - Kevin Middleton
@@ -14,7 +14,8 @@ format:
     show-slide-number: all
 ---
 
-## Motivating Issue
+## Applications of PCA 
+
 
 ```{r}
 #| label: setup
@@ -24,290 +25,66 @@ format:
 
 library(tidyverse)
 library(cowplot)
-library(factoextra)
-library(readxl)
-library(GGally)
 
 ggplot2::theme_set(theme_cowplot())
 ```
 
-- Biological data are inherently complex & multifaceted. Different variables share variation often.
-
-- Challenges
-    - interpretation
-    - separability & co-linearity
-- Benefits
-    - constructing variables more meaningful than proxy measures
-    - more power in some cases
-    
-## Multivariate Data: Squirrels
-
-![](https://mdc.mo.gov/sites/default/files/styles/gallery_main_image/public/2021-01/Flying%20Sq_alteredCMYK.jpg?itok=JhzJrn7y){fig-align="center"}
-
-## Multivariate Data: Squirrels
-
-```{r}
-
-MM <- read_excel("Data/mammals.xlsx", na = "NA") |>
-  filter(family == "Sciuridae" & genus != "Marmota") |>
-  dplyr::select(order, family, genus, species, adult_body_mass_g, adult_head_body_len_mm, diet_breadth, gestation_len_d, habitat_breadth, litter_size,  neonate_body_mass_g, sexual_maturity_age_d) |>
-  rename(adult_mass = adult_body_mass_g,
-         body_length = adult_head_body_len_mm,
-         gest_length = gestation_len_d,
-         neonate_mass = neonate_body_mass_g,
-         maturity_age = sexual_maturity_age_d) |>
-  drop_na() 
-
-glimpse(MM)
-
-```
-
-## Shared Variation
-
-```{r}
-#| echo: true
-
-cor(MM[,5:12])
-
-```
-
-## Shared Variation
-
-```{r}
-
-ggscatmat((MM[,c(5,6,8,10)]))
-
-```
-
-## Importance of Predictors
-
-Which variables are most important for predicting age at sexual maturity?
-
-```{r}
-
-mod <- lm(maturity_age ~ adult_mass + body_length + diet_breadth + gest_length + habitat_breadth + litter_size + neonate_mass, data = MM)
-
-summary(mod)
-
-```
-
-## Importance of Predictors
-
-Which variables are most important for predicting age at sexual maturity?
-
-```{r}
-
-mod <- lm(maturity_age ~ adult_mass + diet_breadth + gest_length + habitat_breadth + litter_size, data = MM)
-
-summary(mod)
-
-```
-
-
-## Importance of Predictors
-
-Which variables are most important for predicting age at sexual maturity?
-
-```{r}
-
-mod <- lm(maturity_age ~ (adult_mass + diet_breadth + gest_length + habitat_breadth + litter_size)^2, data = MM)
-
-summary(mod)
-
-```
-
-
-## Importance of Predictors
-
-> We use data reduction not because it's perfect but when the alternative is a disaster. One of the worst things you can do with data is to take a huge number of collinear features and predict to find the "right" features that predict Y. The data have no chance of finding the right variables in that setting. Data reduction reduces the problem to an analysis that lives without your sample size and collinearity limitations. - [Frank Harrell](https://stats.stackexchange.com/questions/637773/why-does-harrell-argue-for-ignoring-y-during-data-reduction)
-
-## Partitioning Variance Review
-
-- Model with a single predictor
-
-```{r}
-#| echo: true
-
-mod1 <- lm(maturity_age ~ adult_mass, data = MM)
-summary(mod1)
-
-```
-
-## Partitioning Variance Review {.smaller}
-
-$$R^{2} = \frac{SS_{model}}{SS_{total}}$$
-
-$$R^{2} = 1- \frac{SS_{residual}}{SS_{total}}$$
-
-
-```{r, fig.height =  3, fig.width=4, fig.align='center'}
-
-MM$ypred1 <- mod1$fitted.values
-
-MM |> 
-  ggplot(aes(adult_mass, maturity_age)) +
-  geom_point(size = 2, color = "navy") +
-  geom_smooth(method=lm, color = "firebrick", se = FALSE) +
-  geom_segment(x = MM$adult_mass, xend = MM$adult_mass, y = MM$maturity_age, yend = MM$ypred1, color = "firebrick") +
-  geom_hline(yintercept = mean(MM$maturity_age), linetype = "dotted")
-
-```
-
-## Partitioning Variance Review
-
-$$R^{2}: $$ 
-
-- The squared correlation coefficient between predicted and observed Y values
-
-
-```{r, fig.height =  3, fig.width=4, fig.align='center'}
-
-MM |> 
-  ggplot(aes(ypred1, maturity_age)) +
-  geom_point(size = 2, color = "navy") +
-  xlab("Predicted Y Values")
-
-```
-
-## Partitioning Variance
-
-```{r}
-#| echo: true
-
-summary(mod1)$r.squared
-
-cor(mod1$fitted.values, MM$maturity_age)^2
-
-1-(sum(mod1$residuals^2)/sum((MM$maturity_age-mean(MM$maturity_age))^2))
-
-sum((mod1$fitted.values-mean(MM$maturity_age))^2)/sum((MM$maturity_age-mean(MM$maturity_age))^2)
-
-```
-
-## Partitioning Variance
-
-```{r}
-#| echo: true
-
-var(MM$maturity_age)
-```
-
-```{r}
-MM |> 
-  ggplot(aes(maturity_age)) +
-  geom_histogram(fill = "grey50",bins = 15)
-
-```
-
-## Partitioning Variance
-
-```{r}
-#| echo: true
-
-1- (var(mod1$residuals)/var(MM$maturity_age))
-```
-
-```{r}
-TT <- tibble(residuals = mod1$residuals)
-ggplot(TT, aes(x=residuals)) +
-  geom_histogram(fill = "grey50", bins = 15)
-
-```
-
-
-## Partitioning Variance
-
-```{r}
-#| echo: true
-
-mod2 <- lm(maturity_age ~ adult_mass + body_length + diet_breadth + gest_length + habitat_breadth + litter_size + neonate_mass, data = MM)
-
-mod3 <- lm(maturity_age ~ (adult_mass + diet_breadth + gest_length + habitat_breadth + litter_size)^2, data = MM)
-
-var(MM$maturity_age)
-var(mod1$residuals)
-var(mod2$residuals)
-var(mod3$residuals)
-```
-
-## Partitioning Variance
-
-```{r}
-RR <- tibble(value = c(MM$maturity_age-mean(MM$maturity_age), 
-                       mod1$residuals,
-                       mod2$residuals,
-                       mod3$residuals),
-             data = rep(c("all","m1","m2","m3"),each = nrow(MM)))
-
-RR |>
-  ggplot(aes(x = value, fill = data)) +
-  geom_histogram() +
-  facet_grid(data ~ .)
-  
-
-```
-
-## Motivating Issue
-
-- Biological data are inherently complex & multifaceted. Different variables share variation often.
-
-- Challenges
-    - interpretation
-    - separability & co-linearity
-- Benefits
-    - constructing variables more meaningful than proxy measures
-    - more power in some cases
-
-## Land Use Measurements
-
-> How does land use influence pollinator abundance? [fixme - cite]
-https://onlinelibrary.wiley.com/doi/full/10.1002/ece3.4087
-
-- How do we measure "land use"?
-
-## Land Use Measurements
-
-```{r}
-
-lu_d <- read_csv("Data/land_classification.csv") |>
-  select("Site", contains("500")) |>
-  rename(Impervious_surface = Prop_imp500,
-        FlowerRich_habitat  = Prop_flow500,
-        Domestic_infrastructure = Prop_domesticinfrastructure500,
-        Open_land = Prop_open500,
-        Tree_cover = Prop_tree500,
-        Agriculture = Prop_ag500,
-        Gardens = Prop_gard500,
-        Roads = Prop_road500
-  )
-
-glimpse(lu_d)
-
-```
-
-## Principal Components Analysis
-
-```{r}
-#| echo: true
-
-ss <- prcomp(lu_d[,2:9], scale. = TRUE, center = TRUE)
-
-summary(ss)
-
-```
-
-## Principal Components Analysis
-
-```{r}
-
-fviz_pca_var(ss, addlabels = TRUE, repel = TRUE)
-
-```
-
-## Composite Variables
+PCA (and other eigen-like analyses) is one of the most useful tools in data science
 
 - Create a new holistic variable 
 - Reduce dimensionality
 - A way to quantify and describe shared variance
 - Separates shared variation into independent sets
+
+## PCA as a way to identify important confounding variables
+
+Batch effects
+
+- Often (but not always) not of interest
+- Due to non-independence of sets of samples
+- Failure to account for these 
+    - at best: lowers power
+    - at worst: leads to incorrect conclusions
+      
+> The signature of batch effects is shared variance
+
+## Known and Unknown Batches
+
+Example dataset:
+
+- Activity levels of growth factor receptor network (GFRN) pathways in relation to breast cancer progression
+- Treatment: specific GFRN oncogenes were induced by transfection 
+- Controls were transfected with a vector that expresses a green fluorescent protein (GFP)
+- Experiment was done in 3 batches. 
+
+## Known and Unknown Batches
+
+`~ Gene1 + Gene2 + Gene3 ....... Gene17000`
+
+![](./Images/combat_uncor.png){fig-align="center" width=40%}
+
+## Known and Unknown Batches in RNA-seq
+
+![](./Images/combat.png){fig-align="center" width=100%}
+
+## Population Structure
+
+Example dataset:
+
+- Genome sequencing at ~2.8 million SNPs
+- 17 tigers from regions in India
+
+## Population Structure
+
+`~ SNP1 + SNP2 + SNP3 ....... SNP2800000`
+
+![](./Images/tiger_popst.png){fig-align="center" width=60%}
+
+## Creating a useful composite for analysis
+
+Example dataset:
+
+- Cultivars of *Brassica oleracea* planted in a common garden
+- Measured herbivore species presence and abundance
+- Measured glucosinolate concentrations
 
