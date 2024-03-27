@@ -284,9 +284,9 @@ mantel(d_Bray ~ d_Env + d_Geo, nboot = 5000)
 
 ## Key takeaways
 
-- Mantel tests are analogous to a correlation involving matrices
-- Distance measures don't have to be the same (e.g., Euclidean vs. Jaccard)
-- Significance by permutation test
+- Mantel tests are analogous to a correlation
+    - Distance measures don't have to be the same (e.g., Euclidean vs. Jaccard)
+- Can (often) be replaced by some type of canonical analysis (redundancy, canonical correspondence / correlation, linear discriminant)
 - Sensitive to spatial autocorrelation [@Guillot2013-mk]
     - New methods to address autocorrelation [@Crabot2019-pj; @Lisboa2014-or]
 
