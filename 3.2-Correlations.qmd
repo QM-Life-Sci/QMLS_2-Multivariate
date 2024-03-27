@@ -1,0 +1,298 @@
+---
+title: "Correlations between Matrices"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+bibliography: Multivariate.bib
+csl: evolution.csl
+---
+
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+library(readxl)
+library(gt)
+library(ecodist)
+library(ggrepel)
+
+ggplot2::theme_set(theme_cowplot())
+```
+
+## Ecological data matrix
+
+![](Images/data_matrix.png){fig-align="center"}
+
+- Columns are variables (species, measurements, etc.)
+- Rows are samples (sites, units, etc.)
+
+<div class="ref">
+Legendre and Legendre [-@Legendre2012-gp]
+</div>
+
+
+## Data matrix to distance matrix
+
+```{r}
+q6 <- tribble(~ Site, ~ Q_alba, ~ Q_rubra, ~ Q_macrocarpa,
+              "A", 3, 2, 1,
+              "B", 12, 7, 2,
+              "C", 5, 6, 0)
+q6 |> 
+  gt() |> 
+  cols_label(Q_alba = md("*Q. alba*"),
+             Q_rubra = md("*Q. rubra*"),
+             Q_macrocarpa = md("*Q. macrocarpa*")) |> 
+  tab_options(table.font.size = 36)
+```
+
+```{r}
+#| echo: true
+
+distance(q6[, 2:3], method = "bray")
+```
+
+
+## Sampling sites 
+
+```{r}
+img <- png::readPNG(RCurl::getURLContent("https://i.imgur.com/r01a9pz.png"))
+
+pts <- tribble(
+  ~ Site, ~long, ~lat,
+  "A", 1031.500, 387.500,
+  "B", 1341.500, 719.500,
+  "C", 1707.500, 791.500,
+) |> 
+  mutate(lat = dim(img)[1] - lat)
+
+ggplot(data = pts, aes(long, lat, label = Site)) +
+  annotation_raster(img,
+                    xmin = 0, xmax = dim(img)[2],
+                    ymin = 0, ymax = dim(img)[1]) +
+  geom_point(color = "firebrick", size = 4) +
+  geom_label_repel(size = 7, box.padding = 1,
+                   seed = 12344, color = "firebrick") +
+  xlim(c(0, dim(img)[2])) +
+  ylim(c(0, dim(img)[1])) +
+  coord_equal() +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank()) +
+  ggpubr::theme_transparent()
+
+```
+
+
+## Euclidean distance matrix
+
+Pairwise geographical  distances (km) among sites
+
+```{r}
+#| echo: true
+
+pts <- pts |> 
+  mutate(across(.cols = where(is.numeric), ~ .x / 500 * 30))
+d6 <- dist(pts[, 2:3])
+d6 |> print(digits = 2)
+```
+
+
+## Comparing two matrices
+
+```{r}
+q6 |> 
+  gt() |> 
+  cols_label(Q_alba = md("*Q. alba*"),
+             Q_rubra = md("*Q. rubra*"),
+             Q_macrocarpa = md("*Q. macrocarpa*")) |> 
+  tab_options(table.font.size = 28)
+```
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+Bray-Curtis distance between sites ($0 \rightarrow 1$)
+
+```{r}
+distance(q6[, 2:3], method = "bray")
+```
+
+:::
+
+::: {.column width="50%"}
+
+Geographic distance between sites (km)
+
+```{r}
+d6 |> print(digits = 2)
+```
+
+:::
+
+::::
+
+
+## Mantel test: relationship between two matrices
+
+- Described by Mantel [-@Mantel1967-it] for spatial patterns of cancers
+- Uses "distances", not the original variables [@Sokal1979-yj; @Legendre2012-gp]
+    - Often phenotypic, genetic, or geographic distances
+- Correlation between two similarity or distance matrices
+    - Equivalent to Pearson's correlation (*r*) but for matrices
+    - Range from -1 to 1. 0 means no correlation
+
+
+## Mantel test: relationship between two matrices
+
+- Extended to include additional distance covariates: Partial Mantel test [@Smouse1986-ql; @Goslee2007-mt]
+- Recent criticism about high type 1 errors and low power due to non-independence via autocorrelation [@Guillot2013-mk and references therein]
+
+
+## Many options for Mantel tests in R
+
+- `ecodist`
+- `ape`
+- `vegan`
+- `ade4`
+
+Often have identical function names: beware of name masking
+
+
+## Mantel test in `ecodist`
+
+- `mantel(d1 ~ d2)` where `d1` and `d2` are distance or similarity matrices
+    - Can include covariates on the right side
+- *P*-values by permutation:
+    1. One-tailed *P*-value (null hypothesis: *r* <= 0)
+    2. One-tailed *P*-value (null hypothesis: *r* >= 0)
+    3. Two-tailed *P*-value (null hypothesis: *r* = 0)
+
+
+## Mantel test for *Quercus* data
+
+```{r}
+#| echo: true
+q_bray <- distance(q6[, 2:3], method = "bray")
+
+mantel(q_bray ~ d6)
+
+mantel(d6 ~ q_bray)
+```
+
+
+## Spatial patterns of similarity in 47 White Oak stands
+
+Data from Thilenius [-@Thilenius1963-ap]
+
+```{r}
+OD <- read_csv("Data/Oak_data_47x216.csv", show_col_types = FALSE)
+glimpse(OD)
+```
+
+
+## Geographic distance matrix
+
+```{r}
+#| echo: true
+library(geosphere)
+
+OD_LL <- OD |> select(LongAppx, LatAppx)
+d_Geo <- distm(OD_LL, fun = distHaversine) |> as.dist()
+d_Geo
+```
+
+## Bray-Curtis distance matrix
+
+```{r}
+#| echo: true
+
+OD_Spp <- OD |> select(29:217)
+d_Bray <- distance(x = OD_Spp, method = "bray")
+d_Bray
+```
+
+
+## Mantel test
+
+> Is the difference in species composition between stands related to geographic distance between stands?
+
+```{r}
+#| echo: true
+
+mantel(d_Bray ~ d_Geo, nboot = 5000)
+```
+
+
+## Adding a predictor
+
+Extract columns for environment:
+
+- Elevation (`Elev.m`)
+- Incident radiation (`PDIR`)
+- Head load index (`HeatLoad`)
+
+```{r}
+#| echo: true
+
+OD_env <- OD |> select(Elev.m, PDIR, HeatLoad)
+head(OD_env)
+```
+
+
+## Rescale predictors
+
+```{r}
+#| echo: true
+
+OD_env <- OD_env |> 
+  mutate(across(where(is.numeric), scale))
+
+head(OD_env)
+```
+
+
+## Partial Mantel test
+
+> Is the difference in species composition between stands related to environmental variables after the effects of geographic distance are removed?
+
+```{r}
+#| echo: true
+
+d_Env <- distance(OD_env, method = "euclidean")
+
+mantel(d_Bray ~ d_Env + d_Geo, nboot = 5000)
+
+```
+
+- Note that order matters: `d_Env + d_Geo` $\neq$ `d_Geo + d_Env`
+
+
+## Key takeaways
+
+- Mantel tests are analogous to a correlation involving matrices
+- Distance measures don't have to be the same (e.g., Euclidean vs. Jaccard)
+- Significance by permutation test
+- Sensitive to spatial autocorrelation [@Guillot2013-mk]
+    - New methods to address autocorrelation [@Crabot2019-pj; @Lisboa2014-or]
+
+
+## References
+
+::: {#refs}
+:::
+

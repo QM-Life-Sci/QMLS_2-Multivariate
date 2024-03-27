@@ -12,18 +12,6 @@ code-annotations: hover
 ---
 
 
-Working with matrices and arrays practice
-  abind()
-  Naming
-  Drop dimensions
-
-Generate correlated data
-
-Plot MV normal data
-
-Correlation / covariance & visualization of multivariate data
-
-
 ```{r}
 #| label: setup
 #| echo: false
@@ -32,6 +20,10 @@ Correlation / covariance & visualization of multivariate data
 
 library(tidyverse)
 library(cowplot)
+library(abind)
+library(mvtnorm)
+library(GGally)
+library(plotly)
 
 theme_set(theme_cowplot())
 
@@ -40,13 +32,95 @@ theme_set(theme_cowplot())
 
 ## Working with matrices and arrays
 
-Teh
+ As a model system, fruit flies (*Drosophila melanogaster*) are tractable for rearing in large numbers with well-characterized genetics. Wing size and shape in *Drosophila* are frequently studied in the contexts of evolutionary genetics and the aeromechanics of insect flight.
+ 
+A common method for measuring size and shape of biological structures, including wings, is by extracting landmark coordinates in 2- or 3-dimensional space. The directory `wing_landmarks` contains 183 files with data on 12 landmark coordinates. Because wings are (basically) flat, these data are taken in two dimensions (`X` and `Y`).
 
-![](https://raw.githubusercontent.com/QM-Life-Sci/QMLS_2-Multivariate/main/Images/fly_wing.png?raw=true){fig-align="center"}
+The image below shows a wing with its landmarks and a few lines connecting them. The ordering of the landmarks is not important for our exercises, although when collecting these data it is critical to make sure that all the landmark points are in the same order. In this case, the purple point in #1, and the dark red point #12. 
 
 ![](https://www.github.com/QM-Life-Sci/QMLS_2-Multivariate/raw/main/Images/fly_wing.png){fig-align="center"}
 
+Download and unzip the directory. It's best to store the data files inside the `wing_landmarks` directory so you don't have 183 loose files in the same place as your qmd file.
 
+The file name format is `IMG_XXXX_LM.csv` where `XXXX` is the specimen number.
+
+In the chunk below, read in the landmark data file for fly ID 1573 into an object called `IMG_1573`. We want to do a couple of additional steps:
+
+- Drop the column `Landmark`
+- Convert the tibble to a matrix
+
+The result should be a 12 by 2 matrix.
+
+```{r}
+# FIXME
+IMG_1573 <- read_csv("../Data/wing_landmarks//IMG_1573_LM.csv",
+                     show_col_types = FALSE) |> 
+  select(-Landmark) |> 
+  as.matrix()
+```
+
+The landmarks coordinates are in pixels, which is not a biologically meaningful scale. We need to re-scale the `X` and `Y` values to millimeters. The scale for the coordinates for these images is 1498 pixels = 1 mm. 
+
+In the chunk below, use scalar division to re-scale the coordinates to millimeters. You can check to see that scaling worked by calculating the Euclidean distance between the 3rd and 6th points using `dist(IMG_1573[c(3,6), ])`. This value should be slightly more than 2.16 mm.
+
+```{r}
+# FIXME
+
+IMG_1573 <- IMG_1573 / 1498
+dist(IMG_1573[c(3,6), ])
+```
+
+
+### Centroid location and centroid size
+
+Two useful quantities to measure from landmark data are
+
+1. Centroid location (often just referred to as "centroid"), the geometric "location" of the center of the points. The centroid is simply the column means of `X` and `Y` (and `Z` if there are three dimensions)
+2. Centroid size, the square root of the sum of the squared distances from the centroid to each of the points. Think of centroid size as as the "average" distance from the centroid to each point. You might write a function to calculate centroid size, since we will do this same calculation later for all the data.
+
+```{r}
+# FIXME
+
+colMeans(IMG_1573)
+
+# Hard coded version for 2 columns
+centroid_size <- function(MM) {
+  centroid <- colMeans(MM)
+  return(sqrt(sum((centroid[1] - MM[, 1]) ^ 2 +
+                  (centroid[2] - MM[, 2]) ^ 2)))
+}
+
+# More flexible version using apply allowing any number of columns
+centroid_size_2 <- function(MM) {
+  centroid <- colMeans(MM)
+  dists <- apply(MM,
+                 MARGIN = 1,
+                 FUN = function(x) {
+                   as.numeric(dist(rbind(x, centroid)))
+                 })
+  return(sqrt(sum(dists ^ 2)))
+}
+
+centroid_size(IMG_1573)
+centroid_size_2(IMG_1573)
+```
+
+Check your calculations, for `IMG_1573`. You should find:
+
+- Centroid: `(1.485953, 1.289080)` 
+- Centroid size: `2.57595`
+
+
+### Loading all the files
+
+Now that we have processed a single file, the next step is load all of the data files into a list so that we can repeat the steps on all the landmark sets.
+
+There are a few ways you can do this:
+
+1. In a loop after creating an empty `list()`
+2. Using `purrr::map()`, which natively returns a list
+
+Either way, you will first need to get a vector with the paths to all of files. Use the function `list.files()` to get a vector of paths. You will need to use the argument `full.names = TRUE` to return the fill path (including `wing_landmarks`) to the files.
 
 ```{r}
 # FIXME
@@ -56,7 +130,273 @@ flist <- list.files(path = "../Data/wing_landmarks/",
                     full.names = TRUE)
 
 flist[1:5]
+```
 
+In the chunk below, iterate through the file list and read in each file. Do the same steps as above for each file:
+
+- Drop the column `Landmark`
+- Convert the tibble to a matrix
+- Re-scale the coordinates from pixels into mm
+
+You can (should) probably just adapt your code from above.
+
+The result should be a list (`wings`) of 12 x 2 matrices that is 183 elements long. Manually verify a couple of files to make sure they were loaded correctly (e.g., `wings[[1]]`, `wings[[183]]`).
+
+```{r}
+# FIXME
+
+wings <- map(
+  .x = flist,
+  .f = function(.x) {
+    MM <- read_csv(.x,
+             show_col_types = FALSE) |> 
+      select(-Landmark) |> 
+      as.matrix()
+    MM <- MM / 1498
+  }
+)
+
+length(wings)
+wings[[1]]
+wings[[183]]
+
+centroid_size(wings[[1]])
+```
+
+At this point, we have a list of matrices. We want to do a couple of additional steps before we can use these data for interesting analyses:
+
+1. Use `abind()` to bind the matrices `along` axis 3 to create a 3d array with new dimensions: 12 x 2 x 183. Check the dimensions with `dim()`.
+2. Rename the 3rd dimension of the resulting array with the specimen name. Since you have a list of the file names above, you can use that to extract the name with some combination of `str_split()` and `str_remove()`.
+
+
+```{r}
+# FIXME
+
+wings <- abind(wings, along = 3)
+
+dim(wings)
+
+IDs <- str_split(flist, pattern = "/", simplify = TRUE)[, 5] |> 
+  str_remove(pattern = "_LM.csv")
+
+dimnames(wings)[[3]] <- IDs
+wings[ , , 1:3]
+```
+
+
+### Centroid sizes
+
+Finally, we can calculate the centroid sizes for all the specimens in one step. `apply()` your centroid size function along `MARGIN = 3` to return a vector of centroid sizes.
+
+```{r}
+# FIXME
+
+(CS <- apply(wings, MARGIN = 3, FUN = centroid_size_2))
+```
+
+Plot a histogram of centroid sizes for all the specimens:
+
+```{r}
+# FIXME
+
+ggplot(tibble(CS), aes(CS)) +
+  geom_histogram(bins = 30, fill = "firebrick4") +
+  cowplot::theme_cowplot() +
+  labs(x = "Centroid Size", y = "Count")
+```
+
+What are you general impressions of the distribution of centroid sizes?
+
+> They are pretty normally distributed. There are a couple of small wings that might need some investigation further.
+
+3D arrays like this -- where the first dimension is the landmarks in rows, the second dimension is the X, Y, (and Z) columns, and the third dimension is the specimens -- are the standard data format for carrying out geometric morphometric analyses in R using the [`geomorph` package](https://cran.r-project.org/package=geomorph).
+
+
+## Working with correlated data
+
+In lecture 1.4, you learned how to generate bivariate normal data that was either uncorrelated or had a specific, predefined, correlation.
+
+### Generate data with a linear model
+
+Sometimes, such as when you are demonstrating statistical techniques, you just want to generate data that has some non-random association. Since linear models map variables to one another, we could take the following approach, where we create one variable and use that to make the next, and so on.
+
+```{r}
+set.seed(4379)
+MM <- tibble(x1 = 0.5 * rnorm(1e4, mean = 0, sd = 1),
+             x2 = 2 * x1 + rnorm(1e4, mean = 0, sd = 1),
+             x3 = 1.5 * x1 + 0.5 * x2 + rnorm(1e4, mean = 0, sd = 1))
+
+colMeans(MM)
+cor(MM)
+var(MM)
+
+ggscatmat(MM)
+```
+
+Try changing some of the parameters for the multipliers (0.5, 2, 1.5, and 0.5), means, and standard deviations. See how the column means and correlations respond.
+
+What are the drawbacks to generating correlated data in this way?
+
+> You don't have direct control over the correlation matrix. You could probably get close to values that you want, but it would be only by trial and error.
+
+
+### Generate multivariate normal data
+
+In contrast, we showed in the lecture how you can construct a correlation / variance-covariance matrix directly and use the `mvtnorm` package to generate multivariate normal data. We used the `sigma` matrix:
+
+```{r}
+matrix(c(1, 0.8, 0.8, 1), ncol = 2)
+```
+
+It can be hard to construct larger matrices this way. Alternately, you can use `rbind()` with a series of vectors. The same matrix is:
+
+```{r}
+rbind(c(1.0, 0.8),
+      c(0.8, 1.0))
+```
+
+Creating the correlation matrix this way makes it easier to keep track of the row positions, because spatially they are located where they will be in the final matrix (trailing ".0"s on the diagonal 1's help as well).
+
+In the chunk below, create a correlation matrix for three correlated variables. Use the follow constraints:
+
+- Correlation of `x1` to `x2` is 0.25
+- Correlation of `x1` to `x3` is 0.50
+- Correlation of `x2` to `x3` is 0.75
+
+```{r}
+# FIXME
+
+sigma <- rbind(c(1.00, 0.25, 0.50),
+               c(0.25, 1.00, 0.75),
+               c(0.50, 0.75, 1.00))
+sigma
+```
+
+Use `rmvnorm()` to generate `n = 1e4` multivariate normal samples with the correlation structure you specified above. The means for `x1`, `x2`, and `x3` are -4, 15, and 8, respectively. Print the first 5 rows of your data.
+
+```{r}
+# FIXME
+
+set.seed(45457)
+MM <- rmvnorm(n = 1e4, mean = c(-4, 15, 8), sigma = sigma)
+head(MM)
+```
+
+Use `colMeans()`, `cor()`, and `var()` to verify that your data was generated according to your specifications. The values won't be exact, but with 10,000 samples, they should be very close.
+
+```{r}
+# FIXME
+
+colMeans(MM)
+cor(MM)
+var(MM)
+```
+
+Plot a scatterplot matrix with `ggscatmat()` to visualize the data.
+
+```{r}
+# FIXME
+
+ggscatmat(MM)
 
 ```
 
+This plot will give you a sense for what correlations of 0.25, 0.5, and 0.75 look like in multivariate data.
+
+
+### 3D plotting in R
+
+R's 3D plotting capabilities are notoriously poor. For a long time, the only option was the [rgl package](https://cran.r-project.org/package=rgl). More recently, [plotly](https://plotly.com/graphing-libraries/) has emerged as a viable 3D plotting environment (nearly identical in python, which is where plotly started). [ggplotly](https://plotly.com/ggplot2/) is an interesting extension which aims to make regular ggplots more interactive.
+
+We will use plotly for making 3D visualizations. The chunk below makes a basic 3D scatterplot from data in the matrix `MM` (converted to a `data.frame`).
+
+Change `eval` to `true` and rename `MM` if you need to. Then execute the code chunk. You will have an interactive 3D plot. The `marker = ` argument changes the size, color, and alpha level of the points.
+
+```{r}
+#| eval: false
+#        ^^^^
+# Set to true
+
+library(plotly)
+
+plot_ly(data = data.frame(MM),
+        x = ~ X1,
+        y = ~ X2,
+        z = ~ X3,
+        showlegend = FALSE,
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3,
+                      color = "navy",
+                      opacity = 0.25))
+
+```
+
+The plotly syntax can be a little foreign at first (e.g., `= ~` for assigning variables to plot elements), particularly when you are combining different data sources or plot types.
+
+Look through examples in the [plotly R documentation](https://plotly.com/r/) to get a sense for what kinds of plots are possible using plotly.
+
+
+## Correlation, covariance, and visualization of water quality data
+
+In QMLS 1, we looked at a dataset where we tried to predict the presence or absence of sole (*Solea*) based on substrate. The `Sole.xlsx` data has a variety of data, including several for water quality.
+
+Load the data in `Sole.xlsx` and select only the columns for:
+
+- `depth` - depth of water in m
+- `temperature` - temperature of water in °C
+- `salinity` - salinity of parts per thousand (freshwater in <0.05 and brackish water is between 0.5 and 30)
+- `transparency` - visibility in centimeters (higher is clearer water)
+
+```{r}
+# FIXME
+
+library(readxl)
+Sole <- read_excel("../Data/Sole.xlsx") |> 
+  select(depth, temperature, salinity, transparency)
+```
+
+Generate a correlation matrix for the sole data.
+
+```{r}
+# FIXME
+
+cor(Sole)
+```
+
+What patterns do you observe?
+
+> Temperature and depth have little relationship. Salinity and depth are negatively correlated. There are positive correlations between transparency and temperature and transparency and depth.
+
+Plot a scatterplot matrix with `ggscatmat()` to visualize the data.
+
+```{r}
+# FIXME
+
+ggscatmat(Sole)
+```
+
+What patterns do you observe in the data? Does anything stand out more than from just studying the correlation table?
+
+> There are more observations at low depths (< 5 m) than at high depth. Salinity and transparency are pretty strongly negatively correlated (and there appears to be a cluster of high salinity + low transparency onservations). Surprisingly there is little association between depth and temperature.
+
+
+In the chunk below, try to adapt the plotly code from above to make a 3D scatterplot of temperature, salinity, and transparency. Color the points using the data in depth.
+
+```{r}
+# FIXME
+
+plot_ly(data = Sole,
+        x = ~ temperature,
+        y = ~ salinity,
+        z = ~ transparency,
+        color = ~ depth,
+        showlegend = FALSE,
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 5))
+```
+
+Do any new patterns appear when visualizing the data this way? Are any of the relationships more clear? Are any less clear?
+
+> The low temperature + high salinity + low transparency cluster really stands out. All those points are colored purple which is low depth. There appear to be two clusters of points in this visualization.

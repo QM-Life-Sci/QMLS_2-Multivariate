@@ -12,6 +12,8 @@ format:
     logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
+bibliography: Multivariate.bib
+csl: evolution.csl
 ---
 
 
@@ -24,6 +26,8 @@ format:
 library(tidyverse)
 library(cowplot)
 library(readxl)
+library(gt)
+library(ecodist)
 
 ggplot2::theme_set(theme_cowplot())
 ```
@@ -31,10 +35,441 @@ ggplot2::theme_set(theme_cowplot())
 
 ## Unit outline
 
-1. Distance
+1. Distance measures
 2. Correlations between matrices of measures
 3. Multivariate ANOVA (MANOVA)
-4. Permutation-based MANOVA (PERMANOVA)
+4. Permutation-based MANOVA (PerMANOVA)
 
 
-## 
+## Dissimilarity and "Distance"
+
+*Dissimilarity*: qualitative; "how different are these data?"
+
+*Distance*: quantitative measure of similarity / dissimilarity
+
+<br />
+
+<center>
+*The distinction is often semantic.*
+</center>
+
+## Quantifying distance
+
+:::: {.columns}
+
+::: {.column width="70%"}
+
+![](./Images/quercus-rubra-844639_1280.jpg)
+
+:::
+
+::: {.column width="30%"}
+
+```{r}
+q1 <- tribble(~ Site, ~ Quercus,
+              "A", 5,
+              "B", 19)
+q1 |> 
+  gt() |> 
+  cols_label(Quercus = md("*Quercus*")) |> 
+  tab_options(table.font.size = 36)
+```
+
+$$ 19 - 5 = 14$$
+
+:::
+
+::::
+
+
+## Quantifying distance
+
+```{r}
+q2 <- tribble(~ Site, ~ Q_alba, ~ Q_rubra,
+              "A", 3, 2,
+              "B", 12, 7)
+q2 |> 
+  gt() |> 
+  cols_label(Q_alba = md("*Q. alba*"),
+             Q_rubra = md("*Q. rubra*")) |> 
+  tab_options(table.font.size = 36)
+```
+
+$$ 12 - 3 = 14$$
+
+$$7 - 2 = 5$$
+
+
+## Quantifying distance
+
+```{r}
+#| fig-align: center
+#| fig-width: 9
+#| fig-height: 5
+
+ggplot(q2, aes(Q_alba, Q_rubra)) +
+  geom_point(size = 7, color = "firebrick4") +
+  scale_x_continuous(breaks = 0:15) +
+  scale_y_continuous(breaks = 0:8) +
+  labs(x = "Q. alba", y = "Q. rubra") +
+  theme(axis.title = element_text(face = "italic"))
+```
+
+
+## Quantifying distance
+
+```{r}
+#| fig-align: center
+#| fig-width: 9
+#| fig-height: 5
+
+ggplot(q2, aes(Q_alba, Q_rubra)) +
+  geom_point(size = 7, color = "firebrick4", alpha = 0.5) +
+  geom_line(linewidth = 2, color = "firebrick4",
+            arrow = arrow(length = unit(0.5, "cm"))) +
+  scale_x_continuous(breaks = 0:15) +
+  scale_y_continuous(breaks = 0:8) +
+  labs(x = "Q. alba", y = "Q. rubra") +
+  theme(axis.title = element_text(face = "italic"))
+```
+
+
+## Euclidean distance
+
+\begin{align*}
+d &= \sqrt{(Qa_A - Qa_B)^2 + (Qr_A - Qr_B)^2}\\
+  &= \sqrt{(3 - 12)^2 + (2 - 7)^2}\\
+  &= \sqrt{-9^2 + -5^2}\\
+  &= \sqrt(81 + 25)\\
+  &= \sqrt(106)\\
+  &= 10.3
+\end{align*}
+
+
+## Euclidean distance with `dist()`
+
+```{r}
+#| echo: true
+
+dist(q2[, 2:3], method = "euclidean")
+```
+
+- Euclidean distance is the default `dist`
+- Good for geographic distances
+- Not good for community data (plot x species)
+
+## Manhattan distance
+
+```{r}
+#| fig-align: center
+#| fig-width: 9
+#| fig-height: 5
+
+ggplot(q2) +
+  geom_point(aes(Q_alba, Q_rubra),
+             size = 7, color = "firebrick4", alpha = 0.5) +
+  geom_segment(x = 3, xend = 12,
+               y = 2, yend = 2,
+    linewidth = 2, color = "firebrick4",
+            arrow = arrow(length = unit(0.5, "cm"))) +
+  geom_segment(x = 12, xend = 12,
+               y = 2, yend = 7,
+    linewidth = 2, color = "firebrick4",
+            arrow = arrow(length = unit(0.5, "cm"))) +
+  scale_x_continuous(breaks = 0:15) +
+  scale_y_continuous(breaks = 0:8) +
+  labs(x = "Q. alba", y = "Q. rubra") +
+  theme(axis.title = element_text(face = "italic"))
+```
+
+
+## Manhattan distance
+
+```{r}
+#| echo: true
+
+dist(q2[, 2:3], method = "manhattan")
+```
+
+"City block distance"
+
+
+## Comparing distances
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{r}
+q2 |> 
+  gt() |> 
+  cols_label(Q_alba = md("*Q. alba*"),
+             Q_rubra = md("*Q. rubra*")) |> 
+  tab_options(table.font.size = 36)
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+q3 <- tribble(~ Site, ~ Q_alba, ~ Q_rubra,
+              "A", 6, 5,
+              "B", 6, 7)
+q3 |> 
+  gt() |> 
+  cols_label(Q_alba = md("*Q. alba*"),
+             Q_rubra = md("*Q. rubra*")) |> 
+  tab_options(table.font.size = 36)
+```
+
+:::
+
+::::
+
+```{r}
+#| echo: true
+
+dist(q2[, 2:3], method = "euclidean")
+dist(q3[, 2:3], method = "euclidean")
+
+```
+
+
+## Distance depends on scale
+
+```{r}
+#| echo: true
+
+dist(q2[, 2:3] * 1, method = "euclidean")
+dist(q2[, 2:3] * 5, method = "euclidean")
+dist(q2[, 2:3] * 10, method = "euclidean")
+```
+
+More observations $rightarrow$ More distance
+
+
+## Additional sites
+
+```{r}
+q4 <- tribble(~ Site, ~ Q_alba, ~ Q_rubra,
+              "A", 3, 2,
+              "B", 12, 7,
+              "C", 8, 3)
+q4 |> 
+  gt() |> 
+  cols_label(Q_alba = md("*Q. alba*"),
+             Q_rubra = md("*Q. rubra*")) |> 
+  tab_options(table.font.size = 36)
+```
+
+```{r}
+#| echo: true
+
+dist(q4[, 2:3], method = "euclidean")
+```
+
+$$k~Pairs = \frac{n^2 - n}{2}$$
+
+
+## Additional species
+
+```{r}
+q5 <- tribble(~ Site, ~ Q_alba, ~ Q_rubra, ~ Q_macrocarpa,
+              "A", 3, 2, 1,
+              "B", 12, 7, 2)
+q5 |> 
+  gt() |> 
+  cols_label(Q_alba = md("*Q. alba*"),
+             Q_rubra = md("*Q. rubra*"),
+             Q_macrocarpa = md("*Q. macrocarpa*")) |> 
+  tab_options(table.font.size = 36)
+```
+
+3D distance between A and B:
+
+```{r}
+#| echo: true
+
+dist(q5[, 2:4], method = "euclidean")
+```
+
+
+## Considerations
+
+- Scale
+- Number of species
+- Number of sites
+    - How to combine distances?
+
+
+## Desirable properties of a distance measure
+
+1. Zero if observations are identical
+2. Positive if not zero
+3. Symmetric ($A \rightarrow B = B \rightarrow A$)
+4. Metric (e.g., Euclidean) or Semimetric (e.g., Sorensen)
+5. Is there a constant maximum? (e.g., sum to 1)
+
+<div class="ref">
+Modified from Bakker [-@Bakker2024-mg]
+</div>
+
+
+## Lower triangle vs. full matrix
+
+Lower triangular matrix:
+
+```{r}
+#| echo: true
+
+dist(q4[, 2:3], method = "euclidean")
+```
+
+Distance matrix:
+
+```{r}
+#| echo: true
+
+dist(q4[, 2:3], method = "euclidean", diag = TRUE, upper = TRUE)
+```
+
+
+## Other related distances
+
+1. Jaccard Similarity
+2. Sorensen Similarity
+3. Bray-Curtis Distance
+
+
+## Presence/absence species counts
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:36px;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:36px;
+  font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-baqh{text-align:center;vertical-align:top}
+.tg .tg-djlo{background-color:#efefef;font-style:italic;text-align:left;vertical-align:top}
+.tg .tg-kftd{background-color:#efefef;text-align:left;vertical-align:top}
+.tg .tg-y6fn{background-color:#efefef;text-align:left;vertical-align:top}
+.tg .tg-b3sw{background-color:#efefef;font-weight:bold;text-align:left;vertical-align:top}
+.tg .tg-7w4g{background-color:#efefef;font-style:italic;text-align:left;vertical-align:top}
+</style>
+<table class="tg">
+<thead>
+  <tr>
+    <th class="tg-kftd"></th>
+    <th class="tg-y6fn"></th>
+    <th class="tg-b3sw">Plot B</th>
+    <th class="tg-kftd"></th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-kftd"></td>
+    <td class="tg-y6fn"></td>
+    <td class="tg-7w4g">Present</td>
+    <td class="tg-7w4g">Absent</td>
+  </tr>
+  <tr>
+    <td class="tg-b3sw">Plot A</td>
+    <td class="tg-djlo">Present</td>
+    <td class="tg-baqh">a</td>
+    <td class="tg-baqh">b</td>
+  </tr>
+  <tr>
+    <td class="tg-kftd"></td>
+    <td class="tg-djlo">Absent</td>
+    <td class="tg-baqh">c</td>
+    <td class="tg-baqh">d</td>
+  </tr>
+</tbody>
+</table>
+
+- *a*: Present in both
+- *b*: Present in A only
+- *c*: Present in B only
+- *d*: Not present in either
+
+
+## Jaccard Similarity
+
+$$S_J = \frac{a}{a+b+c}$$
+
+- Bounded by 0 (none shared) and 1 (all shared)
+- *d* not included in calculation
+- Metric
+
+
+## Sorensen Similarity
+
+$$S_S = \frac{a}{\frac{(a+b)+(a+b)}{2}} = \frac{2a}{2a+b+c}$$
+
+- Shared presence
+- Also accounts for differences in richness between samples
+- Bounded by 0 and 1, semimetric
+
+
+## Bray-Curtis Distance
+
+$$D_{BC}  = \sum^n_{i=1} \left( \frac{|x_{Ai} - x_{Bi}|}{x_{Ai} + x_{Bi} } \right)$$
+
+- Extension of Sorensen to species abundance
+- $n$ = number of species 
+- $x_{Ai}$ = count of species $i$ at site $A$, etc.
+- Bounded by 0 and 1, semimetric
+- Best for site x species data
+
+
+## Distances in R
+
+- `stats::dist()`: `euclidean`, `manhattan`
+- `vegan::vegdist()`: `euclidean`, `manhattan`, `jaccard`, `bray` [@Oksanen2022-we]
+- `ecodist::distance()`: `euclidean`, `manhattan`, `jaccard`, `sorensen`, `bray` [@Goslee2007-mt]
+
+
+## Similarity between three stands of White Oak
+
+Data from Thilenius [-@Thilenius1963-ap]
+
+```{r}
+OD <- read_csv("Data/Oak_data_47x216.csv", show_col_types = FALSE)
+glimpse(OD)
+```
+
+
+## Similarity between three stands of White Oak
+
+```{r}
+OD_sub <- OD |> slice(1:3) |> select(29:217)
+```
+
+```{r}
+#| echo: true
+
+library(ecodist)
+
+distance(x = OD_sub, method = "euclidean")
+distance(x = OD_sub, method = "manhattan")
+```
+
+
+## Similarity between three stands of White Oak
+
+```{r}
+#| echo: true
+
+distance(x = OD_sub, method = "jaccard")
+distance(x = OD_sub, method = "sorensen")
+distance(x = OD_sub, method = "bray")
+
+```
+
+
+## References
+
+::: {#refs}
+:::
+
