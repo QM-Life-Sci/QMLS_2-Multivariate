@@ -41,7 +41,7 @@ ggplot2::theme_set(theme_cowplot())
 4. Permutation-based MANOVA (PerMANOVA)
 
 
-## Dissimilarity and Distance
+## Dissimilarity and "Distance"
 
 *Dissimilarity*: qualitative; "how different are these data?"
 
@@ -426,8 +426,8 @@ $$D_{BC}  = \sum^n_{i=1} \left( \frac{|x_{Ai} - x_{Bi}|}{x_{Ai} + x_{Bi} } \righ
 ## Distances in R
 
 - `stats::dist()`: `euclidean`, `manhattan`
-- `vegan::vegdist()`: `euclidean`, `manhattan`, `jaccard`, `bray`
-- `ecodist::distance()`: `euclidean`, `manhattan`, `jaccard`, `sorensen`, `bray`
+- `vegan::vegdist()`: `euclidean`, `manhattan`, `jaccard`, `bray` [@Oksanen2022-we]
+- `ecodist::distance()`: `euclidean`, `manhattan`, `jaccard`, `sorensen`, `bray` [@Goslee2007-mt]
 
 
 ## Similarity between three stands of White Oak
