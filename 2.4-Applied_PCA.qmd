@@ -182,15 +182,13 @@ summary(mod)
 
 ## Creating a useful composite for analysis
 
-Example dataset:
+Example dataset (Poelman et al [-@Poelman2009-up]):
 
 - Cultivars of *Brassica oleracea* planted in a common garden
 - Measured herbivore species presence and abundance
 - Measured glucosinolate concentrations (10 chemicals)
 
-<div class="ref">
-Poelman et al [-@Poelman2009-up]
-</div>
+
 
 ## Glucosinolate composite
 
@@ -245,31 +243,21 @@ Astudillo-Clavjo et al [-Astudillo-Clavijo2015-gv]
 
 ## PCA as a way to achieve a useful rotation
 
-Example dataset:
+Example dataset (Peters et al [-@Peters2022-as]):
 
 - 10 measures of antlers for ~500 male deer
 - 38,000 SNPs > genetic relatedness & GWAS
 
-<div class="ref">
-Peters et al [-@Peters2022-as]
-</div>
+
 
 ## PCA as a way to achieve a useful rotation
 
 ![](./Images/antler_pc.png){fig-align="center" width=80%}
 
 
-<div class="ref">
-Peters et al [-@Peters2022-as]
-</div>
-
 ## PCA as a way to achieve a useful rotation
 
 ![](./Images/antler_map.png){fig-align="center" width=80%}
-
-<div class="ref">
-Peters et al [-@Peters2022-as]
-</div>
 
 
 ## PCA as a way to identify important confounding variables
@@ -286,16 +274,12 @@ Batch effects
 
 ## Known and Unknown Batches
 
-Example dataset:
+Example dataset (Zhang et al [-@Zhang2020-va]):
 
 - Activity levels of growth factor receptor network (GFRN) pathways in relation to breast cancer progression
 - Treatment: specific GFRN oncogenes were induced by transfection 
 - Controls were transfected with a vector that expresses a green fluorescent protein (GFP)
 - Experiment was done in 3 batches. 
-
-<div class="ref">
-Zhang et al [-@Zhang2020-va]
-</div>
 
 
 ## Known and Unknown Batches
@@ -310,14 +294,10 @@ Zhang et al [-@Zhang2020-va]
 
 ## Population Structure
 
-Example dataset:
+Example dataset (Khan et al [-@Khan2022-da]):
 
 - Genome sequencing at ~2.8 million SNPs
 - 17 tigers from regions in India
-
-<div class="ref">
-Khan et al [-@Khan2022-da]
-</div>
 
 
 ## Population Structure
