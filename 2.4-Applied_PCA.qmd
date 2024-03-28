@@ -25,7 +25,9 @@ format:
 
 library(tidyverse)
 library(cowplot)
-
+library(readxl)
+library(factoextra)
+library(palmerpenguins)
 ggplot2::theme_set(theme_cowplot())
 ```
 
@@ -35,6 +37,179 @@ PCA (and other eigen-like analyses) is one of the most useful tools in data scie
 - Reduce dimensionality
 - A way to quantify and describe shared variance
 - Separates shared variation into independent sets
+
+## Some Practical Issues in PCA
+
+- Interpretation of the PCs in a biological context
+- Deciding on the number of PCs to consider in further analyses
+
+
+## Penguin PC meanings
+
+```{r}
+
+penguins_vars <- penguins |>
+  dplyr::select(body_mass_g, ends_with("_mm")) |>
+  drop_na()
+
+pen_pca <- prcomp(penguins_vars, center = TRUE, scale. = TRUE)
+
+pen_pca
+
+```
+
+## Penguin PC meanings
+
+```{r}
+
+fviz_pca_var(pen_pca, addlabels = TRUE, repel = TRUE)
+
+```
+
+
+## Which PCs?
+
+```{r}
+
+summary(pen_pca)
+
+```
+
+
+## Penguin PC meanings
+
+```{r}
+
+fviz_pca_var(pen_pca, addlabels = TRUE, repel = TRUE, axes = c(2,3))
+
+```
+
+
+## Penguin PC meanings
+
+```{r}
+
+fviz_pca_var(pen_pca, addlabels = TRUE, repel = TRUE, axes = c(3,4))
+
+```
+
+
+## Squirrel PC meanings
+
+```{r}
+MM <- read_excel("Data/mammals.xlsx", na = "NA") |>
+  filter(family == "Sciuridae" & genus != "Marmota") |>
+  dplyr::select(order, family, genus, species, adult_body_mass_g,
+                adult_head_body_len_mm, diet_breadth, gestation_len_d,
+                habitat_breadth, litter_size,  neonate_body_mass_g,
+                sexual_maturity_age_d) |>
+  rename(adult_mass = adult_body_mass_g,
+         body_length = adult_head_body_len_mm,
+         gest_length = gestation_len_d,
+         neonate_mass = neonate_body_mass_g,
+         maturity_age = sexual_maturity_age_d) |>
+  drop_na() 
+
+sqPCA <- prcomp(~ adult_mass + body_length + diet_breadth +
+            gest_length + habitat_breadth + litter_size + neonate_mass,
+          data = MM, scale. = TRUE, center=TRUE)
+
+sqPCA
+
+```
+
+## Squirrel PC meanings
+
+```{r}
+
+fviz_pca_var(sqPCA, addlabels = TRUE, repel = TRUE)
+
+```
+
+
+## Which PCs?
+
+```{r}
+
+summary(sqPCA)
+
+```
+
+
+## Squirrel PC meanings
+
+```{r}
+
+fviz_pca_var(sqPCA, addlabels = TRUE, repel = TRUE, axes = c(2,3))
+
+```
+
+
+## Squirrel PC meanings
+
+```{r}
+
+fviz_pca_var(sqPCA, addlabels = TRUE, repel = TRUE, axes = c(3,4))
+
+```
+
+## Use all
+
+```{r}
+#| echo: true
+
+mod <- lm(MM$maturity_age ~ sqPCA$x)
+summary(mod)
+
+#show that ~same for one at a time?
+```
+
+
+
+## Creating a useful composite for analysis
+
+- Often many measures are attempting to quantify one biological characterstic
+- Composite variables can be more biologically meaningful than the component measures
+
+## Creating a useful composite for analysis
+
+Example dataset:
+
+- Cultivars of *Brassica oleracea* planted in a common garden
+- Measured herbivore species presence and abundance
+- Measured glucosinolate concentrations (10 chemicals)
+
+## Glucosinolate composite
+
+`~ Glu1 + Glu2....Glu10`
+
+- PC1 explained 72% of the variance
+- increasing scores on PC1 = increase in glucoiberin and decrease in glucoraphanin
+
+## Glucosinolate composite
+
+![](./Images/gluc1_pca.png){fig-align="center" width=50%}
+
+## Herbivore composite
+
+![](./Images/gluc2.png){fig-align="center" width=80%}
+
+## Creating a useful composite for analysis
+
+Example dataset:
+
+- 32 fish species in a cichlid clade
+- morphology & locomotor traits (16 total)
+- performed phylogenetic pca
+
+## Creating a useful composite for analysis
+
+![](./Images/fish_pc.jpg){fig-align="center" width=80%}
+## PCA as a way to achieve a useful rotation
+
+Dworkin?
+Rice ex?
+Antler?
 
 ## PCA as a way to identify important confounding variables
 
@@ -80,28 +255,4 @@ Example dataset:
 
 ![](./Images/tiger_popst.png){fig-align="center" width=60%}
 
-## Creating a useful composite for analysis
-
-Example dataset:
-
-- Cultivars of *Brassica oleracea* planted in a common garden
-- Measured herbivore species presence and abundance
-- Measured glucosinolate concentrations (10 chemicals)
-
-## Glucosinolate composite
-
-`~ Glu1 + Glu2....Glu10`
-
-- PC1 explained 72% of the variance
-- increasing scores on PC1 = increase in glucoiberin and decrease in glucoraphanin
-
-## Glucosinolate composite
-
-![](./Images/gluc1_pca.png){fig-align="center" width=50%}
-
-## Herbivore composite
-
-![](./Images/gluc2.png){fig-align="center" width=80%}
-
-Dworkin paper
 
