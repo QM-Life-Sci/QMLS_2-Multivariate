@@ -251,7 +251,7 @@ dist(q2[, 2:3] * 5, method = "euclidean")
 dist(q2[, 2:3] * 10, method = "euclidean")
 ```
 
-More observations $rightarrow$ More distance
+More observations $\rightarrow$ Greater distance
 
 
 ## Additional sites
@@ -313,8 +313,7 @@ dist(q5[, 2:4], method = "euclidean")
 1. Zero if observations are identical
 2. Positive if not zero
 3. Symmetric ($A \rightarrow B = B \rightarrow A$)
-4. Metric (e.g., Euclidean) or Semimetric (e.g., Sorensen)
-5. Is there a constant maximum? (e.g., sum to 1)
+4. Is there a constant maximum? (e.g., sum to 1)
 
 <div class="ref">
 Modified from Bakker [-@Bakker2024-mg]
@@ -403,9 +402,8 @@ dist(q4[, 2:3], method = "euclidean", diag = TRUE, upper = TRUE)
 
 $$S_J = \frac{a}{a+b+c}$$
 
-- Bounded by 0 (none shared) and 1 (all shared)
 - *d* not included in calculation
-- Metric
+- Bounded by 0 (none shared) and 1 (all shared)
 
 
 ## Sorensen Similarity
@@ -414,7 +412,7 @@ $$S_S = \frac{a}{\frac{(a+b)+(a+b)}{2}} = \frac{2a}{2a+b+c}$$
 
 - Shared presence
 - Also accounts for differences in richness between samples
-- Bounded by 0 and 1, semimetric
+- Bounded by 0 and 1
 
 
 ## Bray-Curtis Distance
@@ -424,7 +422,7 @@ $$D_{BC}  = \sum^n_{i=1} \left( \frac{|x_{Ai} - x_{Bi}|}{x_{Ai} + x_{Bi} } \righ
 - Extension of Sorensen to species abundance
 - $n$ = number of species 
 - $x_{Ai}$ = count of species $i$ at site $A$, etc.
-- Bounded by 0 and 1, semimetric
+- Bounded by 0 and 1
 - Best for site x species data
 
 
