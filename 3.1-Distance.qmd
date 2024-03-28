@@ -33,6 +33,11 @@ ggplot2::theme_set(theme_cowplot())
 ```
 
 
+## FIXME
+
+Symmetric (Mantel, CanCorrel) vs. Asymmetric analysis (Ordination & Regression: MANOVA, CanCorresp, RDA, LDA)
+
+
 ## Unit outline
 
 1. Distance measures
