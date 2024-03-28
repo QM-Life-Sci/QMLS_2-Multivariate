@@ -61,9 +61,9 @@ How well can a categorical predictor variable jointly predict a multivariate set
 ```{r}
 
 nn <- 25
-dat <- tibble(y1 = c(rnorm(nn),rnorm(nn,1)),
-              y2 = c(rnorm(nn),rnorm(nn,1)),
-              y3 = c(rnorm(nn),rnorm(nn,1)),
+dat <- tibble(y1 = c(rnorm(nn),rnorm(nn,2)),
+              y2 = c(rnorm(nn),rnorm(nn,2)),
+              y3 = c(rnorm(nn),rnorm(nn,2)),
               xx = rep(c("A","B"), each = nn))
 
 fig <- plot_ly() |>
@@ -80,6 +80,27 @@ fig <- plot_ly() |>
 
 fig
 ```
+
+
+## MANOVA
+
+```{r}
+library(MASS)
+
+MM <- manova(cbind(y1, y2, y3) ~ xx, data = dat)
+summary(MM)
+summary.aov(MM)
+
+
+ll <- lda(xx ~ y1 + y2 + y3, data = dat)
+
+
+yyc <- ll$scaling[1]*dat$y1 + ll$scaling[2]*dat$y2 + ll$scaling[3]*dat$y3
+
+anova(lm(yyc ~ dat$xx))
+
+```
+
 
 
 ## References

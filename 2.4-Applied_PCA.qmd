@@ -49,6 +49,7 @@ PCA (and other eigen-like analyses) is one of the most useful tools in data scie
 ## Penguin PC meanings
 
 ```{r}
+#| echo: true
 
 penguins_vars <- penguins |>
   dplyr::select(body_mass_g, ends_with("_mm")) |>
@@ -83,7 +84,7 @@ summary(pen_pca)
 ```{r}
 
 fviz_pca_var(pen_pca, addlabels = TRUE, repel = TRUE, axes = c(2,3))
-
+#same slide
 ```
 
 
@@ -95,6 +96,7 @@ fviz_pca_var(pen_pca, addlabels = TRUE, repel = TRUE, axes = c(3,4))
 
 ```
 
+## reminder slide
 
 ## Squirrel PC meanings
 
@@ -155,7 +157,7 @@ fviz_pca_var(sqPCA, addlabels = TRUE, repel = TRUE, axes = c(3,4))
 
 ```
 
-## Use all
+## Use all?
 
 ```{r}
 #| echo: true
@@ -167,6 +169,7 @@ summary(mod)
 ```
 
 
+## Transition slide
 
 ## Creating a useful composite for analysis
 
@@ -204,14 +207,25 @@ Example dataset:
 - morphology & locomotor traits (16 total)
 - performed phylogenetic pca
 
+add phylogeny
+
 ## Creating a useful composite for analysis
 
 ![](./Images/fish_pc.jpg){fig-align="center" width=80%}
+
 ## PCA as a way to achieve a useful rotation
 
-Dworkin?
-Rice ex?
+
 Antler?
+
+[@Peters2022-as]
+
+Peters et al [-@Peters2022-as]
+
+<div class="ref">
+Legendre and Legendre [-@Legendre2012-gp]
+</div>
+
 
 ## PCA as a way to identify important confounding variables
 
@@ -256,5 +270,9 @@ Example dataset:
 `~ SNP1 + SNP2 + SNP3 ....... SNP2800000`
 
 ![](./Images/tiger_popst.png){fig-align="center" width=60%}
+
+## conclusion 
+
+think about your data
 
 
