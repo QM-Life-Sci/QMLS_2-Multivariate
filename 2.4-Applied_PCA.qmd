@@ -79,26 +79,18 @@ summary(pen_pca)
 ```
 
 
-## Penguin PC meanings
-
-```{r}
-
-fviz_pca_var(pen_pca, addlabels = TRUE, repel = TRUE, axes = c(2,3))
-#same slide
-```
-
 
 ## Penguin PC meanings
 
 ```{r}
+p1 <- fviz_pca_var(pen_pca, addlabels = TRUE, repel = TRUE, axes = c(2,3))
 
-fviz_pca_var(pen_pca, addlabels = TRUE, repel = TRUE, axes = c(3,4))
+p2 <- fviz_pca_var(pen_pca, addlabels = TRUE, repel = TRUE, axes = c(3,4))
 
+plot_grid(p1,p2, ncol=2)
 ```
 
-## reminder slide
-
-## Squirrel PC meanings
+## Multivariate Data: Squirrels
 
 ```{r}
 MM <- read_excel("Data/mammals.xlsx", na = "NA") |>
@@ -114,6 +106,16 @@ MM <- read_excel("Data/mammals.xlsx", na = "NA") |>
          maturity_age = sexual_maturity_age_d) |>
   drop_na() 
 
+mod <- lm(maturity_age ~ adult_mass + body_length + diet_breadth +
+            gest_length + habitat_breadth + litter_size + neonate_mass,
+          data = MM)
+
+summary(mod)
+```
+
+## Squirrel PC meanings
+
+```{r}
 sqPCA <- prcomp(~ adult_mass + body_length + diet_breadth +
             gest_length + habitat_breadth + litter_size + neonate_mass,
           data = MM, scale. = TRUE, center=TRUE)
@@ -143,19 +145,18 @@ summary(sqPCA)
 ## Squirrel PC meanings
 
 ```{r}
+p1 <- fviz_pca_var(sqPCA, addlabels = TRUE, repel = TRUE)
 
-fviz_pca_var(sqPCA, addlabels = TRUE, repel = TRUE, axes = c(2,3))
+p2 <- fviz_pca_var(sqPCA, addlabels = TRUE, repel = TRUE, axes = c(2,3))
 
-```
+p3 <- fviz_pca_var(sqPCA, addlabels = TRUE, repel = TRUE, axes = c(3,4))
 
+p4 <- fviz_pca_var(sqPCA, addlabels = TRUE, repel = TRUE, axes = c(4,5))
 
-## Squirrel PC meanings
-
-```{r}
-
-fviz_pca_var(sqPCA, addlabels = TRUE, repel = TRUE, axes = c(3,4))
+plot_grid(p2,p3,p4, nrow = 1)
 
 ```
+
 
 ## Use all?
 
@@ -165,11 +166,14 @@ fviz_pca_var(sqPCA, addlabels = TRUE, repel = TRUE, axes = c(3,4))
 mod <- lm(MM$maturity_age ~ sqPCA$x)
 summary(mod)
 
-#show that ~same for one at a time?
 ```
 
 
-## Transition slide
+## Tour of Some Use Cases 
+
+- Creating useful composites
+- Creating a useful rotation
+- Identifying confounding variables
 
 ## Creating a useful composite for analysis
 
@@ -183,6 +187,10 @@ Example dataset:
 - Cultivars of *Brassica oleracea* planted in a common garden
 - Measured herbivore species presence and abundance
 - Measured glucosinolate concentrations (10 chemicals)
+
+<div class="ref">
+Poelman et al [-@Poelman2009-up]
+</div>
 
 ## Glucosinolate composite
 
@@ -201,13 +209,28 @@ Example dataset:
 
 ## Creating a useful composite for analysis
 
+:::: {.columns}
+
+::: {.column width="50%"}
+
 Example dataset:
 
 - 32 fish species in a cichlid clade
 - morphology & locomotor traits (16 total)
 - performed phylogenetic pca
 
-add phylogeny
+:::
+
+::: {.column width="50%"}
+
+![](./Images/cichlid_phylo.png){fig-align="center" width=100%}
+<div class="ref">
+Astudillo-Clavjo et al [-Astudillo-Clavijo2015-gv]
+</div>
+
+:::
+
+::::
 
 ## Creating a useful composite for analysis
 
@@ -215,15 +238,37 @@ add phylogeny
 
 ## PCA as a way to achieve a useful rotation
 
+- PCA can be used to reorganize a dataset 
+    - consolidate most of the variance
+    - create orthogonal variables
+- Use all in following analysis
 
-Antler?
+## PCA as a way to achieve a useful rotation
 
-[@Peters2022-as]
+Example dataset:
 
-Peters et al [-@Peters2022-as]
+- 10 measures of antlers for ~500 male deer
+- 38,000 SNPs > genetic relatedness & GWAS
 
 <div class="ref">
-Legendre and Legendre [-@Legendre2012-gp]
+Peters et al [-@Peters2022-as]
+</div>
+
+## PCA as a way to achieve a useful rotation
+
+![](./Images/antler_pc.png){fig-align="center" width=80%}
+
+
+<div class="ref">
+Peters et al [-@Peters2022-as]
+</div>
+
+## PCA as a way to achieve a useful rotation
+
+![](./Images/antler_map.png){fig-align="center" width=80%}
+
+<div class="ref">
+Peters et al [-@Peters2022-as]
 </div>
 
 
@@ -248,6 +293,11 @@ Example dataset:
 - Controls were transfected with a vector that expresses a green fluorescent protein (GFP)
 - Experiment was done in 3 batches. 
 
+<div class="ref">
+Zhang et al [-@Zhang2020-va]
+</div>
+
+
 ## Known and Unknown Batches
 
 `~ Gene1 + Gene2 + Gene3 ....... Gene17000`
@@ -265,14 +315,22 @@ Example dataset:
 - Genome sequencing at ~2.8 million SNPs
 - 17 tigers from regions in India
 
+<div class="ref">
+Khan et al [-@Khan2022-da]
+</div>
+
+
 ## Population Structure
 
 `~ SNP1 + SNP2 + SNP3 ....... SNP2800000`
 
 ![](./Images/tiger_popst.png){fig-align="center" width=60%}
 
-## conclusion 
+## Your Data 
 
-think about your data
+- What variables in your datasets share variance?
 
+## References
 
+::: {#refs}
+:::
