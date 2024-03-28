@@ -1,0 +1,88 @@
+---
+title: "MANOVA"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+bibliography: Multivariate.bib
+csl: evolution.csl
+---
+
+## Multivariate ANOVA
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+library(plotly)
+
+ggplot2::theme_set(theme_cowplot())
+```
+
+How well can a categorical predictor variable jointly predict a multivariate set of outcome variables?
+
+**MANOVA**:
+
+`Height + Mouth_Diam + Tube_Diam + Keel_Diam ~ Site`
+
+## MANOVA creates a composite variable
+
+- In PCA, a composite is created that explains the maximum amount of variance among the variables
+- In MANOVA, a composite is created that does this while also maximally separating the groups in the categorical predictor
+    - Then this composite is used as the dependent variable in an ANOVA
+- Focus is on mean differences and whether the combined differences are likely to have occurred by chance
+
+## Advantages of MANOVA
+
+- Identify associations not clear from individual ANOVAs
+- False positive correction
+- More variables often means more information
+
+## Assumptions and Limitations of MANOVA
+
+- Same as ANOVA but for everything
+- Multivariate normal
+- Equal variances
+- Relationships between variables
+
+## Data
+
+```{r}
+
+nn <- 25
+dat <- tibble(y1 = c(rnorm(nn),rnorm(nn,1)),
+              y2 = c(rnorm(nn),rnorm(nn,1)),
+              y3 = c(rnorm(nn),rnorm(nn,1)),
+              xx = rep(c("A","B"), each = nn))
+
+fig <- plot_ly() |>
+  add_markers(data = dat,
+              x = ~ y1,
+              y = ~ y2,
+              z = ~ y3,
+              color = ~ xx,
+              marker = list(size = 5),
+              showlegend = FALSE) |>
+  layout(scene = list(xaxis = list(title = 'y1'),
+                      yaxis = list(title = 'y2'),
+                      zaxis = list(title = 'y3')))
+
+fig
+```
+
+
+## References
+
+::: {#refs}
+:::
