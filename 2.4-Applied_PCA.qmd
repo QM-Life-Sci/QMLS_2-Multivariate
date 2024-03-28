@@ -86,5 +86,22 @@ Example dataset:
 
 - Cultivars of *Brassica oleracea* planted in a common garden
 - Measured herbivore species presence and abundance
-- Measured glucosinolate concentrations
+- Measured glucosinolate concentrations (10 chemicals)
+
+## Glucosinolate composite
+
+`~ Glu1 + Glu2....Glu10`
+
+- PC1 explained 72% of the variance
+- increasing scores on PC1 = increase in glucoiberin and decrease in glucoraphanin
+
+## Glucosinolate composite
+
+![](./Images/gluc1_pca.png){fig-align="center" width=50%}
+
+## Herbivore composite
+
+![](./Images/gluc2.png){fig-align="center" width=80%}
+
+Dworkin paper
 
