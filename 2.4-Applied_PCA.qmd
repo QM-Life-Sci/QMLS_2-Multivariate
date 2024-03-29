@@ -16,8 +16,8 @@ bibliography: Multivariate.bib
 csl: evolution.csl
 ---
 
-## Applications of PCA 
 
+## Applications of PCA 
 
 ```{r}
 #| label: setup
@@ -40,6 +40,7 @@ PCA (and other eigen-like analyses) is one of the most useful tools in data scie
 - A way to quantify and describe shared variance
 - Separates shared variation into independent sets
 
+
 ## Some Practical Issues in PCA
 
 - Interpretation of the PCs in a biological context
@@ -61,6 +62,7 @@ pen_pca
 
 ```
 
+
 ## Penguin PC meanings
 
 ```{r}
@@ -79,7 +81,6 @@ summary(pen_pca)
 ```
 
 
-
 ## Penguin PC meanings
 
 ```{r}
@@ -89,6 +90,7 @@ p2 <- fviz_pca_var(pen_pca, addlabels = TRUE, repel = TRUE, axes = c(3,4))
 
 plot_grid(p1,p2, ncol=2)
 ```
+
 
 ## Multivariate Data: Squirrels
 
@@ -113,6 +115,7 @@ mod <- lm(maturity_age ~ adult_mass + body_length + diet_breadth +
 summary(mod)
 ```
 
+
 ## Squirrel PC meanings
 
 ```{r}
@@ -123,6 +126,7 @@ sqPCA <- prcomp(~ adult_mass + body_length + diet_breadth +
 sqPCA
 
 ```
+
 
 ## Squirrel PC meanings
 
@@ -175,35 +179,39 @@ summary(mod)
 - Creating a useful rotation
 - Identifying confounding variables
 
+
 ## Creating a useful composite for analysis
 
 - Often many measures are attempting to quantify one biological characterstic
 - Composite variables can be more biologically meaningful than the component measures
 
+
 ## Creating a useful composite for analysis
 
-Example dataset (Poelman et al [-@Poelman2009-up]):
+Example dataset Poelman et al. [-@Poelman2009-up]:
 
 - Cultivars of *Brassica oleracea* planted in a common garden
 - Measured herbivore species presence and abundance
 - Measured glucosinolate concentrations (10 chemicals)
 
 
-
 ## Glucosinolate composite
 
-`~ Glu1 + Glu2....Glu10`
+`~ Glu1 + Glu2 + ... + Glu10`
 
 - PC1 explained 72% of the variance
 - increasing scores on PC1 = increase in glucoiberin and decrease in glucoraphanin
+
 
 ## Glucosinolate composite
 
 ![](./Images/gluc1_pca.png){fig-align="center" width=50%}
 
+
 ## Herbivore composite
 
 ![](./Images/gluc2.png){fig-align="center" width=80%}
+
 
 ## Creating a useful composite for analysis
 
@@ -214,8 +222,8 @@ Example dataset (Poelman et al [-@Poelman2009-up]):
 Example dataset:
 
 - 32 fish species in a cichlid clade
-- morphology & locomotor traits (16 total)
-- performed phylogenetic pca
+- Morphology & locomotor traits (16 total)
+- Performed phylogenetic PCA
 
 :::
 
@@ -223,31 +231,33 @@ Example dataset:
 
 ![](./Images/cichlid_phylo.png){fig-align="center" width=100%}
 <div class="ref">
-Astudillo-Clavjo et al [-Astudillo-Clavijo2015-gv]
+Astudillo-Clavjo et al [-@Astudillo-Clavijo2015-gv]
 </div>
 
 :::
 
 ::::
 
+
 ## Creating a useful composite for analysis
 
 ![](./Images/fish_pc.jpg){fig-align="center" width=80%}
 
+
 ## PCA as a way to achieve a useful rotation
 
 - PCA can be used to reorganize a dataset 
-    - consolidate most of the variance
-    - create orthogonal variables
+    - Consolidate most of the variance
+    - Create orthogonal variables
 - Use all in following analysis
+
 
 ## PCA as a way to achieve a useful rotation
 
-Example dataset (Peters et al [-@Peters2022-as]):
+Example dataset from Peters et al. [-@Peters2022-as]:
 
 - 10 measures of antlers for ~500 male deer
 - 38,000 SNPs > genetic relatedness & GWAS
-
 
 
 ## PCA as a way to achieve a useful rotation
@@ -272,9 +282,10 @@ Batch effects
       
 > The signature of batch effects is shared variance
 
+
 ## Known and Unknown Batches
 
-Example dataset (Zhang et al [-@Zhang2020-va]):
+Example dataset from Zhang et al. [-@Zhang2020-va]:
 
 - Activity levels of growth factor receptor network (GFRN) pathways in relation to breast cancer progression
 - Treatment: specific GFRN oncogenes were induced by transfection 
@@ -288,16 +299,18 @@ Example dataset (Zhang et al [-@Zhang2020-va]):
 
 ![](./Images/combat_uncor.png){fig-align="center" width=40%}
 
+
 ## Known and Unknown Batches in RNA-seq
 
 ![](./Images/combat.png){fig-align="center" width=100%}
 
+
 ## Population Structure
 
-Example dataset (Khan et al [-@Khan2022-da]):
+Example dataset from Khan et al. [-@Khan2022-da]:
 
 - Genome sequencing at ~2.8 million SNPs
-- 17 tigers from regions in India
+- 17 tigers from different regions in India
 
 
 ## Population Structure
@@ -306,9 +319,11 @@ Example dataset (Khan et al [-@Khan2022-da]):
 
 ![](./Images/tiger_popst.png){fig-align="center" width=60%}
 
+
 ## Your Data 
 
 - What variables in your datasets share variance?
+
 
 ## References
 
