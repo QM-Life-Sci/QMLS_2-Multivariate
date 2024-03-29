@@ -25,7 +25,11 @@ csl: evolution.csl
 
 library(tidyverse)
 library(cowplot)
+library(GGally)
 library(plotly)
+library(MASS)
+library(mvtnorm)
+set.seed(87231)
 
 ggplot2::theme_set(theme_cowplot())
 ```
@@ -52,9 +56,10 @@ How well can a categorical predictor variable jointly predict a multivariate set
 ## Assumptions and Limitations of MANOVA
 
 - Same as ANOVA but for everything
-- Multivariate normal
-- Equal variances
+    - Multivariate normal
+    - Equal variances
 - Relationships between variables
+    - ideal for moderately correlated response variables
 
 ## Data
 
@@ -85,22 +90,163 @@ fig
 ## MANOVA
 
 ```{r}
-library(MASS)
+#| echo: true
 
 MM <- manova(cbind(y1, y2, y3) ~ xx, data = dat)
 summary(MM)
+```
+
+## MANOVA
+
+- often individual ANOVAs help with interpretation of the overall MANOVA
+
+```{r}
 summary.aov(MM)
+```
 
+## MANOVA makes a composite variable 
 
+- identifies the composite that maximally separates the groups on the dimensions of the response variable
+
+$$Y_{composite} = 0.74*y_{1} + 0.49*y_{2} + 0.47*y_{3}$$
+
+```{r}
 ll <- lda(xx ~ y1 + y2 + y3, data = dat)
+ll$scaling
+```
+
+## MANOVA
+
+```{r}
+#| echo: true
+
+yy_composite <- ll$scaling[1]*dat$y1 + ll$scaling[2]*dat$y2 + ll$scaling[3]*dat$y3
+
+lmod <- lm(yy_composite ~ dat$xx)
+
+anova(lmod)
+summary(MM)
+```
+
+## MANOVA
+
+```{r}
+#| echo: true
+MM$coefficients
+lmod$coefficients
+
+ll$scaling[1]*MM$coefficients[1,1] + ll$scaling[2]*MM$coefficients[1,2] + ll$scaling[3]*MM$coefficients[1,3]
+
+ll$scaling[1]*MM$coefficients[2,1] + ll$scaling[2]*MM$coefficients[2,2] + ll$scaling[3]*MM$coefficients[2,3]
+```
+
+## MANOVA can be more powerful (in rare cases)
+
+```{r}
+#| echo: true
+
+set.seed(140592)
+nn <- 25
+sigma <- rbind(c(1.00, 0.75, 0.75),
+               c(0.75, 1.00, 0.75),
+               c(0.75, 0.75, 1.00))
+
+MM <- rmvnorm(n = nn*2, mean = c(0, 1, 2), sigma = sigma)
+ss <- 2
+MM.dat <- tibble(y1 = MM[,1] + c(rnorm(nn,ss),rnorm(nn,1,ss)),
+             y2 = MM[,2] - c(rnorm(nn,ss),rnorm(nn,1,ss)),
+             y3 = MM[,3] + c(rnorm(nn,ss),rnorm(nn,0.5,ss)),
+             xx = rep(c("A","B"), each = nn)
+)
+
+mod <- manova(cbind(y1, y2, y3) ~ xx, data = MM.dat)
+```
+
+## Single ANOVAS
+
+```{r}
+
+ma <- summary.aov(mod)
+ma
+```
+
+## MANOVA
+
+```{r}
+mm <- summary(mod)
+mm
+```
+
+## Individual effects
+
+```{r}
 
 
-yyc <- ll$scaling[1]*dat$y1 + ll$scaling[2]*dat$y2 + ll$scaling[3]*dat$y3
+p1 <- MM.dat |>
+  ggplot(aes(xx,y1)) +
+  geom_point(position = position_jitter(width = 0.2), size = 3, alpha = 1/2)
 
-anova(lm(yyc ~ dat$xx))
+p2 <- MM.dat |>
+  ggplot(aes(xx,y2)) +
+  geom_point(position = position_jitter(width = 0.2), size = 3, alpha = 1/2) 
+
+plot_grid(p1,p2, ncol=2)
 
 ```
 
+## Multivariate effect
+
+```{r}
+MM.dat |>
+  ggplot(aes(y1,y2, color = xx)) +
+  geom_point(size = 3, alpha = 1/2)
+
+```
+
+## Biological Example: Pitcher Plant Morphology
+
+![](./Images/Darlingtonia.png){fig-align="center"}
+
+*Darlingtonia californica* data from Ellison and Farnsworth [-@Ellison2005-cs]
+
+## Biological Example: Pitcher Plant Morphology
+
+```{r}
+
+PP <- read_csv("./Data/Darlingtonia.csv", show_col_types = FALSE) |> 
+  dplyr::select(1:14) |> 
+  mutate(ID = seq_len(n())) |> 
+  relocate(ID)
+glimpse(PP)
+
+```
+
+## Biological Example: Pitcher Plant Morphology
+
+```{r}
+#| echo: true
+
+Pmod <- manova(cbind(Height, Mouth_Diam, Tube_Diam, Keel_Diam) ~ Site, data = PP)
+
+summary(Pmod)
+```
+
+## Biological Example: Pitcher Plant Morphology
+
+```{r}
+#| echo: true
+summary.aov(Pmod)
+```
+
+## Pitcher Plant Morphology
+
+```{r}
+#| fig-align: center
+
+ggscatmat(PP, columns = 3:6, color = "Site") +
+  theme(axis.text = element_text(size = 8),
+        strip.text = element_text(size = 8))
+```
 
 
 ## References
