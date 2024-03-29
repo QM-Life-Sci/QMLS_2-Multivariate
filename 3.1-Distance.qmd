@@ -33,9 +33,12 @@ ggplot2::theme_set(theme_cowplot())
 ```
 
 
-## FIXME
+## Directionality of tests
 
-Symmetric (Mantel, CanCorrel) vs. Asymmetric analysis (Ordination & Regression: MANOVA, CanCorresp, RDA, LDA)
+- *Symmetric*: $X_1 \sim X_2 = X_2 \sim X_1$
+    - e.g., Pearson's correlation
+- *Asymmetric*: $X_1 \sim X_2 \neq X_2 \sim X_1$ 
+    - e.g., Linear regression model
 
 
 ## Unit outline
@@ -145,8 +148,8 @@ ggplot(q2, aes(Q_alba, Q_rubra)) +
 d &= \sqrt{(Qa_A - Qa_B)^2 + (Qr_A - Qr_B)^2}\\
   &= \sqrt{(3 - 12)^2 + (2 - 7)^2}\\
   &= \sqrt{-9^2 + -5^2}\\
-  &= \sqrt(81 + 25)\\
-  &= \sqrt(106)\\
+  &= \sqrt{81 + 25}\\
+  &= \sqrt{106}\\
   &= 10.3
 \end{align*}
 
@@ -162,6 +165,7 @@ dist(q2[, 2:3], method = "euclidean")
 - Euclidean distance is the default `dist`
 - Good for geographic distances
 - Not good for community data (plot x species)
+
 
 ## Manhattan distance
 
@@ -241,7 +245,7 @@ dist(q3[, 2:3], method = "euclidean")
 ```
 
 
-## Distance depends on scale
+## Euclidean distance depends on scale
 
 ```{r}
 #| echo: true
@@ -342,7 +346,7 @@ dist(q4[, 2:3], method = "euclidean", diag = TRUE, upper = TRUE)
 ## Other related distances
 
 1. Jaccard Similarity
-2. Sorensen Similarity
+2. Sørensen Similarity
 3. Bray-Curtis Distance
 
 
@@ -406,11 +410,11 @@ $$S_J = \frac{a}{a+b+c}$$
 - Bounded by 0 (none shared) and 1 (all shared)
 
 
-## Sorensen Similarity
+## Sørensen Similarity [@Sorensen1948-hj]
 
-$$S_S = \frac{a}{\frac{(a+b)+(a+b)}{2}} = \frac{2a}{2a+b+c}$$
+$$S_S = \frac{2a}{2a+b+c}$$
 
-- Shared presence
+- Shared presence gets double weighting ($2a$)
 - Also accounts for differences in richness between samples
 - Bounded by 0 and 1
 
@@ -419,7 +423,7 @@ $$S_S = \frac{a}{\frac{(a+b)+(a+b)}{2}} = \frac{2a}{2a+b+c}$$
 
 $$D_{BC}  = \sum^n_{i=1} \left( \frac{|x_{Ai} - x_{Bi}|}{x_{Ai} + x_{Bi} } \right)$$
 
-- Extension of Sorensen to species abundance
+- Extension of Sørensen to species abundance
 - $n$ = number of species 
 - $x_{Ai}$ = count of species $i$ at site $A$, etc.
 - Bounded by 0 and 1
@@ -430,7 +434,7 @@ $$D_{BC}  = \sum^n_{i=1} \left( \frac{|x_{Ai} - x_{Bi}|}{x_{Ai} + x_{Bi} } \righ
 
 - `stats::dist()`: `euclidean`, `manhattan`
 - `vegan::vegdist()`: `euclidean`, `manhattan`, `jaccard`, `bray` [@Oksanen2022-we]
-- `ecodist::distance()`: `euclidean`, `manhattan`, `jaccard`, `sorensen`, `bray` [@Goslee2007-mt]
+- `ecodist::distance()`: `euclidean`, `manhattan`, `jaccard`, `Sørensen`, `bray` [@Goslee2007-ry]
 
 
 ## Similarity between three stands of White Oak
