@@ -61,6 +61,7 @@ ggplot2::theme_set(theme_cowplot())
 *The distinction is often semantic.*
 </center>
 
+
 ## Quantifying distance
 
 :::: {.columns}
