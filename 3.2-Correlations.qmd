@@ -159,7 +159,7 @@ d6 |> print(digits = 2)
 
 ## Mantel test: relationship between two matrices
 
-- Extended to include additional distance covariates: Partial Mantel test [@Smouse1986-ql; @Goslee2007-mt]
+- Extended to include additional distance covariates: Partial Mantel test [@Smouse1986-ql; @Goslee2007-ry]
 - Recent criticism about high type 1 errors and low power due to non-independence via autocorrelation [@Guillot2013-mk and references therein]
 
 
