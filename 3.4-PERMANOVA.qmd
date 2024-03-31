@@ -1,0 +1,238 @@
+---
+title: "PERMANOVA"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+bibliography: Multivariate.bib
+csl: evolution.csl
+---
+
+## PERMANOVA Goals
+
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+library(mvtnorm)
+library(vegan)
+
+ggplot2::theme_set(theme_cowplot())
+```
+
+PERmutational Multivariate Analysis of Variance
+
+- Goal of PERMANOVA is decision-making (aka hypothesis testing)
+- What is the probability the observed patterns are only the result of sampling error?
+- PERMANOVA is applicable to any distance measure between categorical groups
+
+## Review of Sums of Squares and F statistics in ANOVA
+
+- Components of the ANOVA table
+- Connection between sums of squares and variances
+- Equivalence between differences and distances 
+
+## Does bright light treatment alleviate jet lag symptoms?
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+![](https://i.imgur.com/X8kUEJq.jpg){fig-align="center"}
+:::
+
+::: {.column width="50%"}
+- 3 groups
+    - No light (control)
+    - Bright light in knees (control)
+    - Bright light in eyes
+- Outcome
+    - Shift in circadian pattern (hours)
+:::
+
+::::
+
+
+## Jet lag data
+
+```{r}
+JL <- read_csv("Data/JetLag.csv", show_col_types = FALSE) |> 
+  mutate(Treatment = factor(Treatment, labels = c("Control", "Eyes", "Knee")))
+```
+
+```{r}
+p1 <- ggplot(JL, aes(x = Treatment, y = Shift)) +
+  geom_point(position = position_jitter(width = 0.1, seed = 43577),
+             size = 4, color = "steelblue") +
+  xlab("Light Treatment") +
+  ylab("Shift in Circadian Rhythm (h)") +
+  theme(axis.title = element_text(face = "bold"))
+p1
+```
+
+```{r}
+anova(lm(Shift ~ Treatment, data = JL))
+```
+
+
+
+## Where do Sum of Squares and Mean Squares come from? 
+
+![](https://i.imgur.com/dNF4ph0.png){fig-align="center"}
+
+$$F = \frac{\mbox{Between Group Variation}}{\mbox{Within Group Variation}} = \frac{\mbox{MS}_{group}}{\mbox{MS}_{error}}$$
+
+## SS are the same as distances to centroids 
+
+![](https://i.imgur.com/dNF4ph0.png){fig-align="center"}
+
+## SS in MANOVA
+
+1. SS for each variable to create a matrix of distances (aka differences)
+1. Distance matrix is squared
+1. Sum
+
+## SS in MANOVA
+
+```{r}
+set.seed(140592)
+nn <- 25
+sigma <- rbind(c(1.00, 0.75, 0.75),
+               c(0.75, 1.00, 0.75),
+               c(0.75, 0.75, 1.00))
+
+MM <- rmvnorm(n = nn*2, mean = c(0, 1, 2), sigma = sigma)
+ss <- 2
+MM.dat <- tibble(y1 = MM[,1] + c(rnorm(nn,ss),rnorm(nn,1,ss)),
+             y2 = MM[,2] - c(rnorm(nn,ss),rnorm(nn,1,ss)),
+             y3 = MM[,3] + c(rnorm(nn,ss),rnorm(nn,0.5,ss)),
+             xx = rep(c("A","B"), each = nn)
+)
+
+sst <- ggplot(MM.dat,aes(y1,y2, color = xx)) + 
+  geom_point() + 
+  geom_segment(aes(x=mean(y1),y=mean(y2), xend=y1,yend=y2)) +
+  geom_point(aes(x=mean(y1),y=mean(y2)),col='gray50',size=4) +
+  theme(legend.position = "none") +
+  ggtitle("Total SS")
+
+ssa <- MM.dat %>% 
+  group_by(xx) %>%
+  mutate(meany1=mean(y1),meany2=mean(y2)) %>%
+  ggplot(aes(y1,y2,color=xx)) + 
+  geom_point() +
+  geom_point(aes(x=mean(y1),y=mean(y2)),col='gray50',size=4) +
+  geom_point(aes(meany1,meany2),size=4)+geom_segment(aes(x=mean(y1),y=mean(y2), xend=meany1,yend=meany2),color='black') +
+  theme(legend.position = "none") +
+  ggtitle("SS Among Groups")
+
+  
+ssw <- MM.dat %>% 
+  group_by(xx) %>% 
+  mutate(meany1=mean(y1),meany2=mean(y2)) %>%
+  ggplot(aes(y1,y2,color = xx)) + 
+  geom_point() +
+  geom_point(aes(x=meany1,y=meany2),size=4) +
+  geom_segment(aes(x=y1,y=y2,xend=meany1,yend=meany2)) +
+  theme(legend.position = "none") +
+  ggtitle("SS Within Groups")
+
+plot_grid(sst, ssa, ssw, ncol = 3)
+
+```
+
+## Centroids and Distance
+
+- The sum of all the squared distances to the centroid is equivalent to the sum of the squared distances between each point and all other points divided by the number of points
+    - Allows application to distances without a defined centroid (e.g. Bray-Curtis)
+
+## pseudo F-ratio for distance
+
+- Ratio of variation between groups to variation within groups
+
+$$F_{pseudo} = \frac{\mbox{SSB}/(n_{groups} - 1)}{\mbox{SSW}/(n_{observations}-n_{groups})}$$
+
+- $\mbox{SSB}$ = sum of squared distances between groups 
+
+- $\mbox{SSW}$ = sum of squared distances within groups 
+
+> This ratio is equivalent to the actual F statistic for euclidian distances in an ANOVA
+
+## PERmutational part of PERMANOVA
+
+1. Compute a distance matrix for your dataset
+1. Calculate $F_{pseudo}$ for observed data
+1. Permute (aka shuffle, aka randomize) group labels
+1. Calculate $F_{pseudo}$ for permuted data data
+1. Repeat many (e.g. 1000) times
+1. Calculate an empirical p-value
+
+Assumptions:
+
+- Under the null hypothesis (aka no real group differances), observations are random draws from a common population
+
+## Resources for understanding randomization procedures
+
+- Lecture 12-1 in QMLS 1
+- QMLS 2 Randomization and Simulation module
+
+
+## PERMANOVA in R
+
+- `vegan` package
+    - function for PERMANOVA is `adonis2()`
+- Several others exist 
+  - some have different flavors specific to certain types of datasets
+  
+## Stands of White Oak
+
+- Does Topo class predict the species community composition in white oak stands?
+
+```{r}
+OD <- read_csv("Data/Oak_data_47x216.csv", show_col_types = FALSE)
+glimpse(OD)
+
+```
+
+## Topo Class
+
+```{r}
+#| echo: true
+
+unique(OD$TopoClass)
+```
+
+## PERMANOVA Results
+
+```{r}
+#| echo: true
+
+spp.dat <- OD[,29:217]
+pmod <- adonis2(formula = spp.dat ~ OD$TopoClass, method = "bray")
+pmod
+
+```
+
+## Take-homes
+
+- PERMANOVA is one type of randomization 
+  - All the issues surrounding how to best perform permutations for different types of models apply here
+  - Very few assumptions 
+
+
+## References
+
+::: {#refs}
+:::
