@@ -41,6 +41,7 @@ ggplot2::theme_set(theme_cowplot())
 
 *Darlingtonia californica* data from Ellison and Farnsworth [-@Ellison2005-cs]
 
+
 ## Biological Example: Pitcher Plant Morphology
 
 ```{r}
@@ -62,6 +63,7 @@ Pmod <- manova(cbind(Height, Mouth_Diam, Tube_Diam, Keel_Diam) ~ Site, data = PP
 summary.aov(Pmod)
 ```
 
+
 ## Multivariate ANOVA
 
 How well can a categorical predictor variable jointly predict a multivariate set of outcome variables?
@@ -73,10 +75,11 @@ How well can a categorical predictor variable jointly predict a multivariate set
 
 ## MANOVA creates a composite variable
 
-- In PCA, a composite is created that explains the maximum amount of variance among the variables
+- In PCA, a composite is created that explains the maximum amount of variance among the variables [@Tabachnick2019-tl]
 - In MANOVA, a composite is created that does this while also maximally separating the groups in the categorical predictor
-    - Then this composite is used as the dependent variable in an ANOVA
+    - This composite is used as the *dependent* variable in an ANOVA
 - Focus is on mean differences and whether the combined differences are likely to have occurred by chance
+
 
 ## Advantages of MANOVA
 
@@ -84,17 +87,19 @@ How well can a categorical predictor variable jointly predict a multivariate set
 - False positive correction
 - More variables often means more information
 
+
 ## Assumptions and Limitations of MANOVA
 
 - Same as ANOVA but for everything
     - Multivariate normal
     - Equal variances
 - Relationships between variables
-    - ideal for moderately correlated response variables
+    - Ideal for moderately correlated response variables
+
 
 ## Biological Example: Pitcher Plant Morphology
 
-- `cbind(y1, y2, y3, ...yn)` on left side
+- `cbind(y1, y2, y3, ..., yn)` on left side
 - Categorical predictor on right side
 - Pillai is default test statistic
 - Wilk's $\lambda$ is also common
@@ -105,6 +110,7 @@ How well can a categorical predictor variable jointly predict a multivariate set
 Pmod <- manova(cbind(Height, Mouth_Diam, Tube_Diam, Keel_Diam) ~ Site, data = PP)
 summary(Pmod)
 ```
+
 
 ## Simulated Data
 
@@ -117,9 +123,11 @@ dat <- tibble(y1 = c(rnorm(nn),rnorm(nn,2)),
               xx = rep(c("A","B"), each = nn))
 ```
 
+
 ## Simulated Data
 
 ```{r}
+#| warning: false
 
 fig <- plot_ly() |>
   add_markers(data = dat,
@@ -146,9 +154,10 @@ MM <- manova(cbind(y1, y2, y3) ~ xx, data = dat)
 summary(MM)
 ```
 
+
 ## MANOVA
 
-- often individual ANOVAs help with interpretation of the overall MANOVA
+- Often individual ANOVAs help with interpretation of the overall MANOVA
 
 ```{r}
 #| echo: true
@@ -156,11 +165,13 @@ summary(MM)
 summary.aov(MM)
 ```
 
+
 ## Biological Example: Pitcher Plant Morphology
 
 ```{r}
 summary.aov(Pmod)
 ```
+
 
 ## Pitcher Plant Morphology
 
@@ -172,6 +183,7 @@ ggscatmat(PP, columns = 3:6, color = "Site") +
         strip.text = element_text(size = 8))
 ```
 
+
 ## MANOVA makes a composite variable 
 
 - identifies the composite that maximally separates the groups on the dimensions of the response variable
@@ -182,6 +194,7 @@ $$Y_{composite} = 0.74~y_{1} + 0.49~y_{2} + 0.47~y_{3}$$
 ll <- lda(xx ~ y1 + y2 + y3, data = dat)
 ll$scaling
 ```
+
 
 ## MANOVA
 
@@ -196,6 +209,7 @@ anova(lmod)
 summary(MM)
 ```
 
+
 ## MANOVA
 
 ```{r}
@@ -207,6 +221,7 @@ ll$scaling[1]*MM$coefficients[1,1] + ll$scaling[2]*MM$coefficients[1,2] + ll$sca
 
 ll$scaling[1]*MM$coefficients[2,1] + ll$scaling[2]*MM$coefficients[2,2] + ll$scaling[3]*MM$coefficients[2,3]
 ```
+
 
 ## MANOVA can be more powerful (in rare cases)
 
@@ -230,6 +245,7 @@ MM.dat <- tibble(y1 = MM[,1] + c(rnorm(nn,ss),rnorm(nn,1,ss)),
 mod <- manova(cbind(y1, y2, y3) ~ xx, data = MM.dat)
 ```
 
+
 ## Single ANOVAS
 
 ```{r}
@@ -238,6 +254,7 @@ ma <- summary.aov(mod)
 ma
 ```
 
+
 ## MANOVA
 
 ```{r}
@@ -245,11 +262,10 @@ mm <- summary(mod)
 mm
 ```
 
+
 ## Individual effects
 
 ```{r}
-
-
 p1 <- MM.dat |>
   ggplot(aes(xx,y1)) +
   geom_point(position = position_jitter(width = 0.2), size = 3, alpha = 1/2)
@@ -262,6 +278,7 @@ plot_grid(p1,p2, ncol=2)
 
 ```
 
+
 ## Multivariate effect
 
 ```{r}
@@ -270,7 +287,6 @@ MM.dat |>
   geom_point(size = 3, alpha = 1/2)
 
 ```
-
 
 
 ## References

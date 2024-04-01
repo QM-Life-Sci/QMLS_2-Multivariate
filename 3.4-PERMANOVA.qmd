@@ -15,8 +15,8 @@ bibliography: Multivariate.bib
 csl: evolution.csl
 ---
 
-## PERMANOVA Goals
 
+## PERMANOVA Goals
 
 ```{r}
 #| label: setup
@@ -34,15 +34,18 @@ ggplot2::theme_set(theme_cowplot())
 
 PERmutational Multivariate Analysis of Variance
 
-- Goal of PERMANOVA is decision-making (aka hypothesis testing)
-- What is the probability the observed patterns are only the result of sampling error?
-- PERMANOVA is applicable to any distance measure between categorical groups
+- Goal of PERMANOVA is decision-making (a.k.a., hypothesis testing)
+    - What is the probability the observed patterns are only the result of sampling error?
+- Applicable to any distance measure between categorical groups
+- More reading: [@Anderson2001-xb; @Anderson2003-zo; @Anderson2017-rd]
 
-## Review of Sums of Squares and F statistics in ANOVA
+
+## Review of Sums of Squares and *F*-statistics in ANOVA
 
 - Components of the ANOVA table
 - Connection between sums of squares and variances
 - Equivalence between differences and distances 
+
 
 ## Does bright light treatment alleviate jet lag symptoms?
 
@@ -51,6 +54,7 @@ PERmutational Multivariate Analysis of Variance
 ::: {.column width="50%"}
 
 ![](https://i.imgur.com/X8kUEJq.jpg){fig-align="center"}
+
 :::
 
 ::: {.column width="50%"}
@@ -73,9 +77,10 @@ JL <- read_csv("Data/JetLag.csv", show_col_types = FALSE) |>
 ```
 
 ```{r}
+#| fig-align: center
 p1 <- ggplot(JL, aes(x = Treatment, y = Shift)) +
   geom_point(position = position_jitter(width = 0.1, seed = 43577),
-             size = 4, color = "steelblue") +
+             size = 5, color = "steelblue") +
   xlab("Light Treatment") +
   ylab("Shift in Circadian Rhythm (h)") +
   theme(axis.title = element_text(face = "bold"))
@@ -94,15 +99,18 @@ anova(lm(Shift ~ Treatment, data = JL))
 
 $$F = \frac{\mbox{Between Group Variation}}{\mbox{Within Group Variation}} = \frac{\mbox{MS}_{group}}{\mbox{MS}_{error}}$$
 
+
 ## SS are the same as distances to centroids 
 
 ![](https://i.imgur.com/dNF4ph0.png){fig-align="center"}
 
+
 ## SS in MANOVA
 
-1. SS for each variable to create a matrix of distances (aka differences)
+1. SS for each variable to create a matrix of distances (i.e., differences)
 1. Distance matrix is squared
 1. Sum
+
 
 ## SS in MANOVA
 
@@ -113,39 +121,40 @@ sigma <- rbind(c(1.00, 0.75, 0.75),
                c(0.75, 1.00, 0.75),
                c(0.75, 0.75, 1.00))
 
-MM <- rmvnorm(n = nn*2, mean = c(0, 1, 2), sigma = sigma)
+MM <- rmvnorm(n = nn * 2, mean = c(0, 1, 2), sigma = sigma)
 ss <- 2
-MM.dat <- tibble(y1 = MM[,1] + c(rnorm(nn,ss),rnorm(nn,1,ss)),
-             y2 = MM[,2] - c(rnorm(nn,ss),rnorm(nn,1,ss)),
-             y3 = MM[,3] + c(rnorm(nn,ss),rnorm(nn,0.5,ss)),
-             xx = rep(c("A","B"), each = nn)
+MM.dat <- tibble(y1 = MM[ , 1] + c(rnorm(nn, ss), rnorm(nn, 1, ss)),
+                 y2 = MM[ , 2] - c(rnorm(nn, ss), rnorm(nn, 1, ss)),
+                 y3 = MM[ , 3] + c(rnorm(nn, ss), rnorm(nn, 0.5, ss)),
+                 xx = rep(c("A", "B"), each = nn)
 )
 
-sst <- ggplot(MM.dat,aes(y1,y2, color = xx)) + 
+sst <- ggplot(MM.dat, aes(y1, y2, color = xx)) + 
   geom_point() + 
-  geom_segment(aes(x=mean(y1),y=mean(y2), xend=y1,yend=y2)) +
-  geom_point(aes(x=mean(y1),y=mean(y2)),col='gray50',size=4) +
+  geom_segment(aes(x = mean(y1), y = mean(y2), xend = y1, yend = y2)) +
+  geom_point(aes(x = mean(y1), y = mean(y2)), col = 'gray50', size = 4) +
   theme(legend.position = "none") +
   ggtitle("Total SS")
 
-ssa <- MM.dat %>% 
-  group_by(xx) %>%
-  mutate(meany1=mean(y1),meany2=mean(y2)) %>%
-  ggplot(aes(y1,y2,color=xx)) + 
+ssa <- MM.dat |> 
+  group_by(xx) |>
+  mutate(meany1 = mean(y1), meany2 = mean(y2)) |>
+  ggplot(aes(y1, y2, color = xx)) + 
   geom_point() +
-  geom_point(aes(x=mean(y1),y=mean(y2)),col='gray50',size=4) +
-  geom_point(aes(meany1,meany2),size=4)+geom_segment(aes(x=mean(y1),y=mean(y2), xend=meany1,yend=meany2),color='black') +
+  geom_point(aes(x = mean(y1), y = mean(y2)), col = 'gray50', size = 4) +
+  geom_point(aes(meany1, meany2), size = 4) + 
+  geom_segment(aes(x = mean(y1), y = mean(y2),
+                   xend = meany1, yend = meany2), color = 'black') +
   theme(legend.position = "none") +
   ggtitle("SS Among Groups")
 
-  
-ssw <- MM.dat %>% 
-  group_by(xx) %>% 
-  mutate(meany1=mean(y1),meany2=mean(y2)) %>%
-  ggplot(aes(y1,y2,color = xx)) + 
+ssw <- MM.dat |> 
+  group_by(xx) |> 
+  mutate(meany1 = mean(y1), meany2 = mean(y2)) |>
+  ggplot(aes(y1, y2, color = xx)) + 
   geom_point() +
-  geom_point(aes(x=meany1,y=meany2),size=4) +
-  geom_segment(aes(x=y1,y=y2,xend=meany1,yend=meany2)) +
+  geom_point(aes(x = meany1, y = meany2), size = 4) +
+  geom_segment(aes(x = y1, y = y2, xend = meany1, yend = meany2)) +
   theme(legend.position = "none") +
   ggtitle("SS Within Groups")
 
@@ -153,12 +162,14 @@ plot_grid(sst, ssa, ssw, ncol = 3)
 
 ```
 
+
 ## Centroids and Distance
 
 - The sum of all the squared distances to the centroid is equivalent to the sum of the squared distances between each point and all other points divided by the number of points
-    - Allows application to distances without a defined centroid (e.g. Bray-Curtis)
+    - Allows application to distances without a defined centroid (e.g., Bray-Curtis)
 
-## pseudo F-ratio for distance
+
+## pseudo *F*-ratio for distance
 
 - Ratio of variation between groups to variation within groups
 
@@ -168,7 +179,8 @@ $$F_{pseudo} = \frac{\mbox{SSB}/(n_{groups} - 1)}{\mbox{SSW}/(n_{observations}-n
 
 - $\mbox{SSW}$ = sum of squared distances within groups 
 
-> This ratio is equivalent to the actual F statistic for euclidian distances in an ANOVA
+> This ratio is equivalent to the actual *F* statistic for Euclidian distances in an ANOVA
+
 
 ## PERmutational part of PERMANOVA
 
@@ -181,7 +193,8 @@ $$F_{pseudo} = \frac{\mbox{SSB}/(n_{groups} - 1)}{\mbox{SSW}/(n_{observations}-n
 
 Assumptions:
 
-- Under the null hypothesis (aka no real group differances), observations are random draws from a common population
+- Under the null hypothesis (a.k.a., no real group differances), observations are random draws from a common population
+
 
 ## Resources for understanding randomization procedures
 
@@ -196,6 +209,7 @@ Assumptions:
 - Several others exist 
   - some have different flavors specific to certain types of datasets
   
+  
 ## Stands of White Oak
 
 - Does Topo class predict the species community composition in white oak stands?
@@ -206,6 +220,7 @@ glimpse(OD)
 
 ```
 
+
 ## Topo Class
 
 ```{r}
@@ -213,6 +228,7 @@ glimpse(OD)
 
 unique(OD$TopoClass)
 ```
+
 
 ## PERMANOVA Results
 
@@ -225,11 +241,12 @@ pmod
 
 ```
 
+
 ## Take-homes
 
 - PERMANOVA is one type of randomization 
   - All the issues surrounding how to best perform permutations for different types of models apply here
-  - Very few assumptions 
+  - Very few assumptions [@Bakker2024-mg]
 
 
 ## References
