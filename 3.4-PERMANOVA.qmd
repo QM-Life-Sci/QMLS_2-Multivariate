@@ -193,7 +193,7 @@ $$F_{pseudo} = \frac{\mbox{SSB}/(n_{groups} - 1)}{\mbox{SSW}/(n_{observations}-n
 
 Assumptions:
 
-- Under the null hypothesis (a.k.a., no real group differances), observations are random draws from a common population
+- Under the null hypothesis (a.k.a., no real group differences), observations are random draws from a common population
 
 
 ## Resources for understanding randomization procedures
