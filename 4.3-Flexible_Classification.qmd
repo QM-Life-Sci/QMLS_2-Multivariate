@@ -88,6 +88,14 @@ Test_set |> count(Group)
 
 ## QDA intro
 
+- LDA assumes multivariate normality and common covariance matrix
+- QDA assumes multivariate normality but that each class has its own covariance matrix
+- Why prefer LDA to QDA?
+	- Bias-variance trade off -- QDA fits many more parameters
+	- QDA will be more accurate but at some cost to overfitting
+	- LDA will be more conservative, but if the assumption of a common covariance structure is not true, then LDA will be prone to underfitting
+	- LDA is better when there is less training data
+	
 
 ## QDA
 
