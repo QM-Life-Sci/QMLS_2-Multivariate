@@ -24,8 +24,13 @@ csl: evolution.csl
 
 library(tidyverse)
 library(cowplot)
+library(rsample)
+library(mvtnorm)
 
 ggplot2::theme_set(theme_cowplot())
+
+SD2 <- read_rds("Data/SD2.rds")
+SD3 <- read_rds("Data/SD3.rds")
 ```
 
 
@@ -42,25 +47,10 @@ Linear separation of groups
 - FDA [@Hastie1994-mt; @Hastie2009-xa]
 
 
-## Simulate data
+## Simulated data
 
 ```{r}
-library(mvtnorm)
-
-set.seed(347977)
-n <- 100
-
-sigma <- rbind(c(1.0, 0.3),
-               c(0.3, 1.0))
-G1 <- rmvnorm(n = n, mean = c(-2, -2), sigma = sigma)
-G2 <- rmvnorm(n = n, mean = c(0, 2), sigma = sigma)
-G3 <- rmvnorm(n = n, mean = c(2, -1), sigma = sigma)
-G <- data.frame(rbind(G1, G2, G3))
-
-SD <- data.frame(Group = factor(rep(LETTERS[1:3], each = n)),
-                 G)
-
-ggplot(SD, aes(X1, X2, color = Group)) +
+ggplot(SD3, aes(X1, X2, color = Group)) +
   geom_point(size = 3) +
   coord_equal() +
   scale_color_brewer(type = "qual", palette = "Set1")
@@ -79,7 +69,7 @@ library(rsample)
 
 set.seed(34598734)
 
-split <- initial_split(SD, strata = Group, prop = 0.75) 
+split <- initial_split(SD3, strata = Group, prop = 0.75) 
 
 Training_set <- training(split) 
 Test_set <- testing(split)
@@ -133,8 +123,8 @@ table(Test_set[, 1], Group_pred$class)
 ```{r}
 #| echo: true
 
-Grid <- crossing(X1 = seq(min(SD$X1), max(SD$X1), length.out = 100),
-                 X2 = seq(min(SD$X2), max(SD$X2), length.out = 100))
+Grid <- crossing(X1 = seq(min(SD3$X1), max(SD3$X1), length.out = 100),
+                 X2 = seq(min(SD3$X2), max(SD3$X2), length.out = 100))
 Grid <- Grid |> 
   mutate(Train_pred = predict(QDA_fit, newdata = Grid)$class)
 
@@ -220,8 +210,8 @@ table(Test_set[, 1], Group_pred)
 ```{r}
 #| echo: true
 
-Grid <- crossing(X1 = seq(min(SD$X1), max(SD$X1), length.out = 100),
-                 X2 = seq(min(SD$X2), max(SD$X2), length.out = 100))
+Grid <- crossing(X1 = seq(min(SD3$X1), max(SD3$X1), length.out = 100),
+                 X2 = seq(min(SD3$X2), max(SD3$X2), length.out = 100))
 Grid <- Grid |> 
   mutate(Train_pred = predict(SVM_fit, newdata = Grid))
 
@@ -271,16 +261,16 @@ X <- rmvnorm(n, mean = c(0, 0)) |> as.data.frame() |>
   rename(X1 = V1,
          X2 = V2)
 
-SD <- data.frame(X) |> 
+CP <- data.frame(X) |> 
   mutate(Group = if_else(X1^2 + X2^2 <= 1, "A", "B") |> factor()) |> 
   relocate(Group)
 
-ggplot(SD, aes(X1, X2, color = Group)) +
+ggplot(CP, aes(X1, X2, color = Group)) +
   geom_point(size = 3) +
   coord_equal() +
   scale_color_brewer(type = "qual", palette = "Set1")
 
-split <- initial_split(SD, strata = Group, prop = 0.75) 
+split <- initial_split(CP, strata = Group, prop = 0.75) 
 
 Training_set <- training(split) 
 Test_set <- testing(split)
@@ -301,8 +291,8 @@ Group_pred <- predict(SVM_fit, newdata = Test_set[, -1])
 ## Plotting the results 
 
 ```{r}
-Grid <- crossing(X1 = seq(min(SD$X1), max(SD$X1), length.out = 100),
-                 X2 = seq(min(SD$X2), max(SD$X2), length.out = 100))
+Grid <- crossing(X1 = seq(min(CP$X1), max(CP$X1), length.out = 100),
+                 X2 = seq(min(CP$X2), max(CP$X2), length.out = 100))
 
 Grid <- Grid |> 
   mutate(Train_pred = predict(SVM_fit, newdata = Grid))
