@@ -62,6 +62,9 @@ prp(pruned_tree,
     extra = 1, #display number of obs. for each terminal node
     roundint = F, #don't round to integers in output
     digits = 5) #display 5 decimal places in output
+
+draw.tree (pruned_tree,
+           nodeinfo=TRUE, units="species", cases="cells", digits=0)
 ```
 
 
