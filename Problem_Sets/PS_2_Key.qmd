@@ -35,7 +35,7 @@ theme_set(theme_cowplot())
 
 In QMLS 1, we used the `Birds.xlsx` file, which contains data from Vuilleumier, F. (1970) Insular Biogeography in Continental Regions. I. The Northern Andes of South America. *American Naturalist* 104:373-388.
 
-This paper explores the numbers of bird species in isolated "islands" of páramo vegetation in the Andes. The Missouri Botanical Garden can explain it better than we can (http://bit.ly/1PNWfsq):
+This paper explores the numbers of bird species in isolated "islands" of páramo vegetation in the Andes. The Missouri Botanical Garden can [explain it better than we can](http://bit.ly/1PNWfsq):
 
 > Within the tropical regions of Mexico, Central and South America, Africa, Malesia including New Guinea, and Hawaii, there is a vegetation type that occurs between the upper limit of continuous, closed-canopy forest (i.e., forest line or timberline) and the upper limit of plant life (i.e., snow line) that is characterized by tussock grasses, large rosette plants, shrubs with evergreen, coriaceous and sclerophyllous leaves, and cushion plants.  This vegetation type is scattered along the crests of the highest mountain ranges or on isolated mountaintops between about 3000 meters (m) and 5000 m, like islands in a sea of forest.
 
@@ -54,8 +54,11 @@ Read in the data and create the correlation matrix for all variables except loca
 MM <- read_excel("../Data/Birds.xlsx")
 
 cor(MM[,2:6])
-
 ```
+
+Does anything stand out in the correlation matrix to make you concerned about using multiple regression to analyze these data?
+
+> No, the pairwise correlations are all reasonable. The largest is ~-0.7.
 
 Fit a linear model wherein species abundance is predicted by the other four variables as we did in QMLS 1. Note the coefficients for each predictor. 
 
@@ -69,7 +72,7 @@ summary(fm)
 Use the following equation from lecture to use matrix algebra to solve for the coefficients:
 
 $$B = \left(X^T ~ X \right)^{-1}~\left( X^T~y \right)$$
-where $X$ is the matrix of predictor variables and $y$ is the matrix containing the reponse variable. Use `model.matrix` to obtain $X$ - this matrix should have a column of 1's for the intercept followed by a column containing each predictor. You may want to compute each component of the equation separately first. Compare your result to the coefficients in the model summary you obtained above.
+where $X$ is the matrix of predictor variables and $y$ is the matrix containing the reponse variable. Use `model.matrix()` to obtain $X$. The $X$ matrix should have a column of 1's for the intercept followed by a column containing each predictor. You may want to compute each component of the equation separately first, rather than trying to do the equation in one line. Compare your result to the coefficients in the model summary you obtained above.
 
 ```{r}
 #FIXME
@@ -101,6 +104,7 @@ solve(t(X) %*% X) %*% (t(X) %*% y)
 
 ```
 
+
 ## Simulated data and shared variance 
 
 Let's explore how different amounts of shared variance influence the outcome of PCA. Simulate three different datasets each consisting of 8 variables. In each, simulate data such that the 8 variables all have the same correlation ranging from low shared variance (correlations all = 0.05), medium (correlations all = 0.5), and high (correlations all = 0.9) 
@@ -108,7 +112,7 @@ Let's explore how different amounts of shared variance influence the outcome of 
 The steps will be: 
 
 1. Create a 8x8 square correlation matrix. First, fill the entire matrix with the desired correlation between your predictors. Then use `diag` to set the diagonal elements to 1. 
-1. Use `rmvnorm` to simulate your data. For the means, choose any 8 values between 1 and 30.
+1. Use `rmvnorm` to simulate your data. For the means, choose any 8 random values between 1 and 30 using `runif()`.
 1. Perform a PCA using `prcomp`. Examine the rotation and summary to interpret the new composite variables. 
 1. Make a biplot to help visualize what is happening in each case. Note you are only generating positive correlations so the plot might look more lopsided than a typical dataset.
 
@@ -143,7 +147,7 @@ How does the PCA change as the amount of shared variance increases?
 
 In the previous simulation, we created variables all with equal correlation. Let's create a data set with two sets of variables each correlated with each other but not highly correlated with the other set. You want to make a correlation matrix that looks like this:
 
-![](https://i.imgur.com/DcBAMmF.png)
+![](https://i.imgur.com/DcBAMmF.png){fig-align="center" width=50%}
 
 As above, simulate your data, run a PCA, and examine the output and biplot. 
 
@@ -176,8 +180,8 @@ fviz_pca_var(pp, addlabels = TRUE, repel = TRUE)
 
 How are the results of this PCA different? Which predictors load together?
 
-> Now, the two sets of correlated variables load onto different PC axes. Predictors 1, 2, and 3 load onto PC1 with 1 and 2 in the same direction and 3 in the other direction. Variables 4, 5, and 6 load onto PC2 all in the same direction. 
-#FIXME
+> Now, the two sets of correlated variables load onto different PC axes. Predictors 1, 2, and 3 load onto PC1 with 1 and 2 in the same direction and 3 in the other direction. Variables 4, 5, and 6 load onto PC2 all in the same direction. #FIXME
+
 
 ## Eigenanalysis
 
@@ -193,9 +197,10 @@ ee
 
 > The "values" are the eignenvalues and represent the amount of total standardized variance accounted for by each PC. These values divided by the sum of the eigenvalues gives the propotion of variance accounted for by each PC. The "vectors" are the eigenvectors and represent the relative contribution of each variable to each PC. #FIXME
 
+
 ## Urbanization and plant divergence
 
-Santangelo et al. (2020) planted 642 white clover plants from 290 families that were collected across an urbanization gradient and measured a suite of phenotypes on these individuals. The averages per family excluding families that had any missing data are in the dataset `Santangelo_familyMean.csv`. The metadata provided by the authors describing the columns is here:
+Santangelo et al. (2020) planted 642 white clover plants from 290 families that were collected across an urbanization gradient and measured a suite of phenotypes on these individuals. The averages per family excluding families that had any missing data are in the dataset `Santangelo_familyMean.csv`. The metadata provided by the authors describing the columns is in this table:
 
 | Column | Description | Type |
 |--------|-------------|------|
@@ -214,10 +219,11 @@ Perform a PCA on the plant characteristics: use all of the variables except the 
 
 ```{r}
 #FIXME
-DD <- read_csv("../Data/Santangelo_familyMean.csv") 
+DD <- read_csv("../Data/Santangelo_familyMean.csv",
+               show_col_types = FALSE) 
 glimpse(DD)
 
-pca.dd <- prcomp(DD[,3:10], center=TRUE, scale.=TRUE)
+pca.dd <- prcomp(DD[,3:10], center = TRUE, scale. = TRUE)
 pca.dd
 summary(pca.dd)
 fviz_pca_var(pca.dd, addlabels = TRUE, repel = TRUE)
