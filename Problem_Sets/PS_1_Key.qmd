@@ -32,7 +32,7 @@ theme_set(theme_cowplot())
 
 ## Working with matrices and arrays
 
- As a model system, fruit flies (*Drosophila melanogaster*) are tractable for rearing in large numbers with well-characterized genetics. Wing size and shape in *Drosophila* are frequently studied in the contexts of evolutionary genetics and the aeromechanics of insect flight.
+As a model system, fruit flies (*Drosophila melanogaster*) are tractable for rearing in large numbers with well-characterized genetics. Wing size and shape in *Drosophila* are frequently studied in the contexts of evolutionary genetics and the aeromechanics of insect flight.
  
 A common method for measuring size and shape of biological structures, including wings, is by extracting landmark coordinates in 2- or 3-dimensional space. The directory `wing_landmarks` contains 183 files with data on 12 landmark coordinates. Because wings are (basically) flat, these data are taken in two dimensions (`X` and `Y`).
 
@@ -176,7 +176,7 @@ wings <- abind(wings, along = 3)
 
 dim(wings)
 
-IDs <- str_split(flist, pattern = "/", simplify = TRUE)[, 5] |> 
+IDs <- str_split(flist, pattern = .Platform$file.sep, simplify = TRUE)[, 4] |> 
   str_remove(pattern = "_LM.csv")
 
 dimnames(wings)[[3]] <- IDs
