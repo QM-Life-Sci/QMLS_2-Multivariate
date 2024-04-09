@@ -18,17 +18,6 @@ code-annotations: hover
 #| message: false
 #| warning: false
 
-#FIXME
-
-library(tidyverse)
-library(cowplot)
-library(mvtnorm)
-library(readxl)
-library(factoextra)
-
-
-theme_set(theme_cowplot())
-
 ```
 
 <!--
@@ -55,24 +44,17 @@ We used these data to see what the best predictor(s) of bird abundance is/are. T
 Read in the data and create the correlation matrix for all variables except location.
 
 ```{r}
-#FIXME
 
-MM <- read_excel("../Data/Birds.xlsx")
-
-cor(MM[,2:6])
 ```
 
 Does anything stand out in the correlation matrix to make you concerned about using multiple regression to analyze these data?
 
-> No, the pairwise correlations are all reasonable. The largest is ~-0.7.
+> 
 
 Fit a linear model wherein species abundance is predicted by the other four variables as we did in QMLS 1. Note the coefficients for each predictor. 
 
 ```{r}
-# FIXME
-fm <- lm(N_Species ~ Area + Elevation + Dist_to_Ecuador + Dist_to_Island,
-         data = MM)
-summary(fm)
+
 ```
 
 Use the following equation from lecture to use matrix algebra to solve for the coefficients:
@@ -81,32 +63,17 @@ $$B = \left(X^T ~ X \right)^{-1}~\left( X^T~y \right)$$
 where $X$ is the matrix of predictor variables and $y$ is the matrix containing the reponse variable. Use `model.matrix()` to obtain $X$. The $X$ matrix should have a column of 1's for the intercept followed by a column containing each predictor. You may want to compute each component of the equation separately first, rather than trying to do the equation in one line. Compare your result to the coefficients in the model summary you obtained above.
 
 ```{r}
-#FIXME
 
-X <- model.matrix(N_Species ~ Area + Elevation + Dist_to_Ecuador + Dist_to_Island,
-                   data = MM)  
-y <- as.matrix(MM[,2])
-
-solve(t(X) %*% X) %*% (t(X) %*% y)
-
-coef(fm)
 ```
 
 Use the coefficients you've calculated to interpret this model, including your interpretation of the intercept. 
 
-> The number of species increases with area, elevation, and distance to island. It decreases with distance to Ecuador. When the predictors are all 0, the model still predicts ~28 species will be present. #FIXME
+> 
 
 We might wish to fit a model "without" an intercept, which will constrain the intercept to be zero using the `- 1` syntax. Also use matrix math to calculate these coefficients. 
 
 ```{r}
-#FIXME
 
-fm0 <- lm(N_Species ~ Area + Elevation + Dist_to_Ecuador + Dist_to_Island - 1,
-         data = MM)
-coef(fm0)
-
-X <- as.matrix(MM[,3:6])
-solve(t(X) %*% X) %*% (t(X) %*% y)
 
 ```
 
@@ -123,30 +90,13 @@ The steps will be:
 1. Make a biplot to help visualize what is happening in each case. Note you are only generating positive correlations so the plot might look more lopsided than a typical dataset.
 
 ```{r}
-#FIXME
 
-set.seed(254683)
-
-ccs <- c(0.05, 0.5, 0.9)
-
-for(cc in ccs)
-{
-sigma <- matrix(cc, nrow=8, ncol=8)
-diag(sigma) <- 1
-
-MM <- rmvnorm(n = 800, mean = runif(8,1,30), sigma = sigma)
-
-pp <- prcomp(MM, center=TRUE, scale.=TRUE)
-print(pp)
-print(summary(pp))
-print(fviz_pca_var(pp, addlabels = TRUE, repel = TRUE))
-}
 
 ```
 
 How does the PCA change as the amount of shared variance increases? 
 
-> When there is more shared variation (higher correlations) the first PC explains a larger proportion of the variance and the loadings of the individual predictors trend in the same direction. When the correlations between variables are lower, the predictors load more evenly on differnt PCs and the initial PCs account for less variation. #FIXME
+> 
 
 
 ## Sets of shared variance
@@ -158,35 +108,13 @@ In the previous simulation, we created variables all with equal correlation. Let
 As above, simulate your data, run a PCA, and examine the output and biplot. 
 
 ```{r}
-#FIXME
 
-sigma <- matrix(0.05, nrow=6, ncol=6)
-diag(sigma) <- 1
-sigma[1,2] <- 0.9
-sigma[2,1] <- 0.9
-sigma[2,3] <- -0.8
-sigma[1,3] <- -0.8
-sigma[3,1] <- -0.8
-sigma[3,2] <- -0.8
-sigma[4,5] <- 0.5
-sigma[5,4] <- 0.5
-sigma[5,6] <- 0.5
-sigma[6,5] <- 0.5
-sigma[4,6] <- 0.5
-sigma[6,4] <-0.5
-
-MM <- rmvnorm(n = 800, mean = runif(6,1,30), sigma = sigma)
-
-pp <- prcomp(MM, center=TRUE, scale.=TRUE)
-pp
-summary(pp)
-fviz_pca_var(pp, addlabels = TRUE, repel = TRUE)
 
 ```
 
 How are the results of this PCA different? Which predictors load together?
 
-> Now, the two sets of correlated variables load onto different PC axes. Predictors 1, 2, and 3 load onto PC1 with 1 and 2 in the same direction and 3 in the other direction. Variables 4, 5, and 6 load onto PC2 all in the same direction. #FIXME
+> 
 
 
 ## Eigenanalysis
@@ -195,13 +123,11 @@ Use the `eigen` function and the correlation matrix for your simulated data you 
 
 ```{r}
 
-ee <- eigen(cor(MM))
 
-ee
 
 ```
 
-> The "values" are the eignenvalues and represent the amount of total standardized variance accounted for by each PC. These values divided by the sum of the eigenvalues gives the propotion of variance accounted for by each PC. The "vectors" are the eigenvectors and represent the relative contribution of each variable to each PC. #FIXME
+> 
 
 
 ## Urbanization and plant divergence
@@ -224,16 +150,7 @@ Santangelo et al. (2020) planted 642 white clover plants from 290 families that 
 Perform a PCA on the plant characteristics: use all of the variables except the urbanization measure (`Distance_to_core`). Examine the results of the PCA and visualize them and interpret the meaning of the major PCs. In doing so, determine how many of the PCs you think are meaningful. 
 
 ```{r}
-#FIXME
-DD <- read_csv("../Data/Santangelo_familyMean.csv",
-               show_col_types = FALSE) 
-glimpse(DD)
 
-pca.dd <- prcomp(DD[,3:10], center = TRUE, scale. = TRUE)
-pca.dd
-summary(pca.dd)
-fviz_pca_var(pca.dd, addlabels = TRUE, repel = TRUE)
-fviz_pca_var(pca.dd, addlabels = TRUE, repel = TRUE, axes = c(2,3))
 
 ```
 
@@ -242,18 +159,11 @@ One of the goals of the paper was to determine how plant characteristics change 
 For each of the PC's you decide are meaningful, perform an `lm` with the PC scores as the response variable and `Distance_to_core` as the predictor. 
 
 ```{r}
-mod <- lm(pca.dd$x[,1] ~ DD$Distance_to_core)
-summary(mod)
 
-mod <- lm(pca.dd$x[,2] ~ DD$Distance_to_core)
-summary(mod)
-
-mod <- lm(pca.dd$x[,3] ~ DD$Distance_to_core)
-summary(mod)
 ```
 
 What would you conclude from this analysis? How do plants change as you move away from the city center?
 
->
+> 
 
 
