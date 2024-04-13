@@ -24,8 +24,6 @@ csl: evolution.csl
 
 library(tidyverse)
 library(cowplot)
-library(rsample)
-library(mvtnorm)
 
 ggplot2::theme_set(theme_cowplot())
 
@@ -38,44 +36,58 @@ SD3 <- read_rds("Data/SD3.rds")
 [Machine Learning](https://cran.r-project.org/web/views/MachineLearning.html)
 
 
-## CART intro
+## *Classification* and *Regression* Trees
 
-Original: [@Breiman1984-vv]
+- Original description [@Breiman1984-vv]
+- Non-technical introduction [@Fielding2006-xa]
+- Introduction for ecologists [@Elith2008-qs]
 
 [`rpart`: Recursive Partitioning and Regression Trees](https://cran.r-project.org/package=rpart) and `rpart.plot` for plotting
 
-[@Elith2009-py]
 
-[@Elith2008-qs]
-
-[@Fielding2006-xa]
+## Methodology
 
 Series of if-else splits
 
 - Like a species key
-    - Variables are reused
-- "recursive partitioning"
+    - Variables can be reused
+- "Recursive partitioning"
   - No limit to the number of splits that can happen
-  - Tree pruning is necessary
+  - *Post hoc* tree pruning is necessary
 
-Challenges
 
-- What split is "best"?
-- When is a node terminal?
+## CART Schematic
+
+![](https://www.geo.fu-berlin.de/en/v/geo-it/gee/3-classification/3-1-methodical-background/3-1-1-cart/dectree.png){fig-align="center"}
+
+
+## Challenges
+
+- What combination of splits is "best"?
+- When is a node a leaf (terminal)?
 - Computationally challenging for large numbers of predictors and/or data
 
 
-Very general
+## Very general method
 
 - Do not have to conform to distributional requirements of multivariate normality
     - Most any kind of data will work
 - Creates a set of thresholds for partitioning
-    - These do not *necessarily* have any biological meaning
 - Robust to extreme values
-    - They just become their own terminal node
+    - Become their own leaf node
 
+
+## Drawbacks
+
+- Thresholds do not *necessarily* have any biological meaning
+- Overfitting is easy (train/test is essential)
+
+
+## Data setup
 
 ```{r}
+#| echo: true
+
 library(rpart)
 library(rpart.plot)
 library(rsample)
@@ -86,32 +98,158 @@ split <- initial_split(SD3, strata = Group, prop = 0.75)
 
 Training_set <- training(split) 
 Test_set <- testing(split)
+```
 
+
+## Building the CART
+
+- `cp` controls the threshold for keeping a split
+
+```{r}
+#| echo: true
+#| output-location: slide
 tree <- rpart(Group ~ X1 + X2, data = Training_set,
-              control = rpart.control(cp = 0.0001))
+              control = rpart.control(cp = 0.01))
+tree
+```
 
-#view results
+
+## Summarizing
+
+```{r}
 printcp(tree)
+```
 
-#identify best cp value to use
+
+## Pruning
+
+- Identify best `cp` value to use
+- Prune the tree based on the best cp value
+
+```{r}
+#| echo: true
+
 best <- tree$cptable[which.min(tree$cptable[ , "xerror"]), "CP"]
-
-#produce a pruned tree based on the best cp value
 pruned_tree <- prune(tree, cp = best)
+```
 
-#plot the pruned tree
+```{r}
+tree$cptable
+```
+
+
+## Plot the pruned tree
+
+```{r}
+#| echo: true
+
 prp(pruned_tree,
     faclen = 0,
     extra = 1,
     roundint = FALSE,
     digits = 3)
+```
+
+## Default plot
+
+```{r}
+#| echo: true
 
 rpart.plot(pruned_tree)
+```
 
+## Prediction
+
+```{r}
+#| echo: true
 
 pred.tree <- predict(pruned_tree, Test_set, type = "class")
 table(pred.tree, Test_set$Group)
+mean(pred.tree == Test_set$Group) * 100
+```
 
+
+## Application to fly diet experiment
+
+```{r}
+#| echo: true
+
+FD <- read_csv("./Data/PreProcessed_Expr.csv",
+               show_col_types = FALSE) |> 
+  dplyr::select(-patRIL) |> 
+  mutate(Treat = factor(Treat)) |> 
+  as.data.frame()
+
+set.seed(94875)
+
+split <- initial_split(FD, strata = Treat, prop = 0.75) 
+
+Training_set <- training(split) 
+Test_set <- testing(split)
+```
+
+
+## CART building
+
+```{r}
+#| echo: true
+
+set.seed(98715)
+tree <- rpart(Treat ~ .,
+              data = Training_set,
+              control = rpart.control(cp = 0.01))
+tree
+```
+
+
+## Summarizing
+
+```{r}
+printcp(tree)
+```
+
+
+## Pruning
+
+```{r}
+#| echo: true
+
+best <- tree$cptable[which.min(tree$cptable[ , "xerror"]), "CP"]
+pruned_tree <- prune(tree, cp = best)
+```
+
+```{r}
+tree$cptable
+```
+
+## Plot the pruned tree
+
+```{r}
+#| echo: true
+
+prp(pruned_tree,
+    faclen = 0,
+    extra = 1,
+    roundint = FALSE,
+    digits = 3)
+```
+
+## Default plot
+
+```{r}
+#| echo: true
+
+rpart.plot(pruned_tree)
+```
+
+## Prediction
+
+```{r}
+#| echo: true
+
+pred.tree <- predict(pruned_tree, Test_set, type = "class")
+table(pred.tree, Test_set$Treat)
+mean(pred.tree == Test_set$Treat) * 100
 ```
 
 

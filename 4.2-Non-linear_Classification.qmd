@@ -1,5 +1,5 @@
 ---
-title: "Flexible Classification"
+title: "Non-linear Classification"
 author:
   - Elizabeth King
   - Kevin Middleton
@@ -26,7 +26,8 @@ library(tidyverse)
 library(cowplot)
 library(mvtnorm)
 library(rsample)
-library(e1071) 
+library(e1071)
+library(gt)
 
 ggplot2::theme_set(theme_cowplot())
 
@@ -40,25 +41,30 @@ SD3 <- read_rds("Data/SD3.rds")
 - Like a MANOVA in reverse
 - Linear separation of groups
 
+Can we do better?
+
 
 ## Non-linear classifiers
 
-1. Quadratic Discriminant Analysis `MASS::qda()`
+1. Quadratic Discriminant Analysis: `MASS::qda()`
     - Linear space is "mapped" to quadratic space
-    - `X1 + X1^2 + X2 + X2^2`
-2. Support Vector Machines [@Hastie2009-xa; @James2013-oe]
+    - $X_1 + X_2 + X_1^2 + X_2^2$
+    - Prone to high correlations between predictors and their squares
+2. Support Vector Machines
+    - Non-technical introduction [@Fielding2006-xa]
+    - Technical introductions [@Hastie2009-xa; @James2013-oe]
 
 
 ## Support Vector Machines
 
-- Bypasses the polynomial expansion via a "kernel"
+- Bypasses the corelation problem via a "kernel"
     - Linear, polynomial, radial, sigmoid
 - [Why is a support vector machine called a machine?](https://www.quora.com/Why-is-a-support-vector-machine-called-a-machine)
 
-![](https://www.dtreg.com/uploaded/pageimg/SvmMargin2.jpg)
+![](https://www.dtreg.com/uploaded/pageimg/SvmMargin2.jpg){fig-align="center"}
 
 <div class="ref">
-[DTReg](https://www.dtreg.com/)
+Figure from [DTReg](https://www.dtreg.com/)
 </div>
 
 
@@ -88,7 +94,10 @@ ggplot(SD3, aes(X1, X2, color = Group)) +
 ## Create training and testing sets
 
 - [`rsample` package](https://rsample.tidymodels.org/index.html)
-- Also [`cvTools`](https://cran.r-project.org/web/packages/cvTools/index.html) (among others)
+- Also:
+    - [`cvTools`](https://cran.r-project.org/web/packages/cvTools/index.html)
+    - `mlr3verse`
+    - others
 
 ```{r}
 #| echo: true
@@ -125,7 +134,7 @@ SVM_fit <- svm(Group ~ .,
                scale = TRUE,
                type = "C-classification", 
                kernel = "radial",
-               cost = 5)
+               cost = 1)
 SVM_fit
 ```
 
@@ -135,7 +144,7 @@ SVM_fit
 ```{r}
 #| echo: true
 
-(Group_pred <- predict(SVM_fit, newdata = Test_set[, -1]) )
+(Group_pred <- predict(SVM_fit, newdata = Test_set[, -1]))
 ```
 
 
@@ -145,6 +154,14 @@ SVM_fit
 #| echo: true
 
 table(Test_set[, 1], Group_pred) 
+```
+
+Percent correct
+
+```{r}
+#| echo: true
+
+mean(Test_set[, 1] == Group_pred) * 100
 ```
 
 
@@ -216,8 +233,7 @@ SVM_fit <- svm(Group ~ X1 + X2,
                data = Training_set, 
                scale = TRUE,
                type = "C-classification", 
-               kernel = "radial",
-               cost = 5) 
+               kernel = "radial") 
 
 # Predicting the Test set results 
 Group_pred <- predict(SVM_fit, newdata = Test_set[, -1]) 
@@ -278,6 +294,14 @@ Test_set |> count(Treat)
 ```
 
 
+## Visualizing gene expression levels
+
+```{r}
+ggplot(FD, aes(y = Dm01792789_g1, x = Dm01798339_g1, color = Treat)) +
+         geom_point()
+```
+
+
 ## Fitting SVM to the Training set 
 
 ```{r}
@@ -312,6 +336,14 @@ SVM_fit
 table(Test_set[, 1], Group_pred) 
 ```
 
+Percent correct:
+
+```{r}
+#| echo: true
+
+mean(Test_set[, 1] == Group_pred) * 100
+```
+
 
 ## Plotting
 
@@ -330,6 +362,66 @@ plot(SVM_fit,
      formula = Dm01792789_g1 ~ Dm01798339_g1)
 ```
 
+
+## Comparing kernels
+
+```{r}
+SVM_linear <- svm(Treat ~ ., 
+                  data = Training_set, 
+                  scale = TRUE,
+                  type = "C-classification", 
+                  kernel = "linear")
+Linear_Pct <- mean(Test_set[, 1] == predict(SVM_linear,
+                                            newdata = Test_set[, -1])) * 100
+
+SVM_quad <- svm(Treat ~ ., 
+                  data = Training_set, 
+                scale = TRUE,
+                type = "C-classification", 
+                kernel = "polynomial",
+                degree = 2)
+Quad_Pct <- mean(Test_set[, 1] == predict(SVM_quad,
+                                          newdata = Test_set[, -1])) * 100
+
+SVM_poly3 <- svm(Treat ~ ., 
+                 data = Training_set, 
+                 scale = TRUE,
+                 type = "C-classification", 
+                 kernel = "polynomial",
+                 degree = 3)
+Poly3_Pct <- mean(Test_set[, 1] == predict(SVM_poly3,
+                                           newdata = Test_set[, -1])) * 100
+
+SVM_radial <- svm(Treat ~ ., 
+                  data = Training_set, 
+                  scale = TRUE,
+                  type = "C-classification", 
+                  kernel = "radial")
+Radial_Pct <- mean(Test_set[, 1] == predict(SVM_radial,
+                                            newdata = Test_set[, -1])) * 100
+
+SVM_sigmoid <- svm(Treat ~ ., 
+                   data = Training_set, 
+                   scale = TRUE,
+                   type = "C-classification", 
+                   kernel = "sigmoid")
+Sigmoid_Pct <- mean(Test_set[, 1] == predict(SVM_sigmoid,
+                                             newdata = Test_set[, -1])) * 100
+
+Accuracy <- tribble(
+  ~ Kernel, ~ Pct_Corr,
+  "Linear", Linear_Pct,
+  "Quadratic", Quad_Pct,
+  "3rd Order Polynomial", Poly3_Pct,
+  "Radial", Radial_Pct,
+  "Sigmoid", Sigmoid_Pct
+)
+
+Accuracy |> gt(rowname_col = "Kernel") |> 
+  cols_label(Pct_Corr = md("*Percent Correct*")) |> 
+  tab_options(table.font.size = 36) |> 
+  fmt_number(decimals = 1)
+```
 
 ## Going further
 
