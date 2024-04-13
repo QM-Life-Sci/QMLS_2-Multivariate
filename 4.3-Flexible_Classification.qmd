@@ -24,8 +24,9 @@ csl: evolution.csl
 
 library(tidyverse)
 library(cowplot)
-library(rsample)
 library(mvtnorm)
+library(rsample)
+library(e1071) 
 
 ggplot2::theme_set(theme_cowplot())
 
@@ -34,17 +35,44 @@ SD3 <- read_rds("Data/SD3.rds")
 ```
 
 
-## DFA / LDA
+## *Linear* Discriminant Analysis
 
-Linear separation of groups
+- Like a MANOVA in reverse
+- Linear separation of groups
 
 
-## Outline
+## Non-linear classifiers
 
-- QDA `MASS::qda()`
-- SVM [@Hastie2009-xa; @James2013-oe]
-    - [https://www.quora.com/Why-is-a-support-vector-machine-called-a-machine](https://www.quora.com/Why-is-a-support-vector-machine-called-a-machine)
-- FDA [@Hastie1994-mt; @Hastie2009-xa]
+1. Quadratic Discriminant Analysis `MASS::qda()`
+    - Linear space is "mapped" to quadratic space
+    - `X1 + X1^2 + X2 + X2^2`
+2. Support Vector Machines [@Hastie2009-xa; @James2013-oe]
+
+
+## Support Vector Machines
+
+- Bypasses the polynomial expansion via a "kernel"
+    - Linear, polynomial, radial, sigmoid
+- [Why is a support vector machine called a machine?](https://www.quora.com/Why-is-a-support-vector-machine-called-a-machine)
+
+![](https://www.dtreg.com/uploaded/pageimg/SvmMargin2.jpg)
+
+<div class="ref">
+[DTReg](https://www.dtreg.com/)
+</div>
+
+
+## SVM in R
+
+- [`e1071` package](https://cran.r-project.org/web/packages/e1071/index.html): `svm()`
+- [kernlab](https://cran.r-project.org/web/packages/kernlab/vignettes/kernlab.pdf): `ksvm()`
+- [Applied Machine Learning Using mlr3 in R](https://mlr3book.mlr-org.com/)
+
+```{r}
+#| echo: true
+
+library(e1071) 
+```
 
 
 ## Simulated data
@@ -76,7 +104,7 @@ Test_set <- testing(split)
 ```
 
 
-## Counts
+## Training and testing sets
 
 ```{r}
 #| echo: true
@@ -86,112 +114,19 @@ Test_set |> count(Group)
 ```
 
 
-## QDA intro
-
-- LDA assumes multivariate normality and common covariance matrix
-- QDA assumes multivariate normality but that each class has its own covariance matrix
-- Why prefer LDA to QDA?
-	- Bias-variance trade off -- QDA fits many more parameters
-	- QDA will be more accurate but at some cost to overfitting
-	- LDA will be more conservative, but if the assumption of a common covariance structure is not true, then LDA will be prone to underfitting
-	- LDA is better when there is less training data
-	
-
-## QDA
-
-```{r}
-#| echo: true
-
-library(MASS)
-QDA_fit <- qda(Training_set[, 2:3], Training_set[, 1])
-QDA_fit
-```
-
-
-## Predicting the test set results 
-
-```{r}
-#| echo: true
-
-(Group_pred <- predict(QDA_fit, newdata = Test_set[, -1])) 
-```
-
-
-## Confusion matrix
-
-```{r}
-#| echo: true
-
-table(Test_set[, 1], Group_pred$class) 
-```
-
-
-## Predicting
-
-```{r}
-#| echo: true
-
-Grid <- crossing(X1 = seq(min(SD3$X1), max(SD3$X1), length.out = 100),
-                 X2 = seq(min(SD3$X2), max(SD3$X2), length.out = 100))
-Grid <- Grid |> 
-  mutate(Train_pred = predict(QDA_fit, newdata = Grid)$class)
-
-head(Grid)
-```
-
-
-## Plotting the training data set results
-
-```{r}
-P1 <- ggplot() +
-  geom_tile(data = Grid, aes(X1, X2, fill = Train_pred), alpha = 0.25) +
-  geom_point(data = Training_set, aes(X1, X2, color = Group)) +
-  scale_color_brewer(type = "qual", palette = "Set1") +
-  scale_fill_brewer(type = "qual", palette = "Set1") +
-  theme(legend.position = "none") +
-  labs(title = "QDA Training")
-
-# Plotting the test data set results 
-P2 <- ggplot() +
-  geom_tile(data = Grid, aes(X1, X2, fill = Train_pred), alpha = 0.25) +
-  geom_point(data = Test_set, aes(X1, X2, color = Group)) +
-  scale_color_brewer(type = "qual", palette = "Set1") +
-  scale_fill_brewer(type = "qual", palette = "Set1") +
-  theme(legend.position = "none") +
-  labs(title = "QDA Testing")
-
-plot_grid(P1, P2)
-
-```
-
-
-## SVM intro
-
-- Kernel types
-
-
-## SVM
-
-[`e1071` package](https://cran.r-project.org/web/packages/e1071/index.html)
-
-- Functions for latent class analysis, short time Fourier transform, fuzzy clustering, support vector machines, shortest path computation, bagged clustering, naive Bayes classifier, generalized k-nearest neighbour
-
-```{r}
-library(e1071) 
-```
-
-
 ## Fitting SVM to the Training set 
 
 ```{r}
 #| echo: true
+#| output-location: slide
 
-SVM_fit <- svm(Group ~ X1 + X2, 
+SVM_fit <- svm(Group ~ ., 
                data = Training_set, 
                scale = TRUE,
                type = "C-classification", 
                kernel = "radial",
-               cost = 5) 
+               cost = 5)
+SVM_fit
 ```
 
 
@@ -218,8 +153,8 @@ table(Test_set[, 1], Group_pred)
 ```{r}
 #| echo: true
 
-Grid <- crossing(X1 = seq(min(SD3$X1), max(SD3$X1), length.out = 100),
-                 X2 = seq(min(SD3$X2), max(SD3$X2), length.out = 100))
+Grid <- crossing(X1 = seq(min(SD3$X1), max(SD3$X1), length.out = 200),
+                 X2 = seq(min(SD3$X2), max(SD3$X2), length.out = 200))
 Grid <- Grid |> 
   mutate(Train_pred = predict(SVM_fit, newdata = Grid))
 
@@ -248,13 +183,6 @@ P4 <- ggplot() +
   labs(title = "SVM Testing")
 
 plot_grid(P3, P4)
-```
-
-
-## Comparing QDA and SVM
-
-```{r}
-plot_grid(P1, P2, P3, P4, ncol = 2)
 ```
 
 
@@ -299,8 +227,8 @@ Group_pred <- predict(SVM_fit, newdata = Test_set[, -1])
 ## Plotting the results 
 
 ```{r}
-Grid <- crossing(X1 = seq(min(CP$X1), max(CP$X1), length.out = 100),
-                 X2 = seq(min(CP$X2), max(CP$X2), length.out = 100))
+Grid <- crossing(X1 = seq(min(CP$X1), max(CP$X1), length.out = 200),
+                 X2 = seq(min(CP$X2), max(CP$X2), length.out = 200))
 
 Grid <- Grid |> 
   mutate(Train_pred = predict(SVM_fit, newdata = Grid))
@@ -310,7 +238,8 @@ P1 <- ggplot() +
   geom_point(data = Training_set, aes(X1, X2, color = Group)) +
   scale_color_brewer(type = "qual", palette = "Set1") +
   scale_fill_brewer(type = "qual", palette = "Set1") +
-  theme(legend.position = "none")
+  theme(legend.position = "none") +
+  labs(title = "SVM Training")
 
 # Plotting the test data set results 
 P2 <- ggplot() +
@@ -318,11 +247,99 @@ P2 <- ggplot() +
   geom_point(data = Test_set, aes(X1, X2, color = Group)) +
   scale_color_brewer(type = "qual", palette = "Set1") +
   scale_fill_brewer(type = "qual", palette = "Set1") +
-  theme(legend.position = "none")
+  theme(legend.position = "none") +
+  labs(title = "SVM Testing")
 
 plot_grid(P1, P2)
 ```
 
+
+## Application to Fly Diets
+
+```{r}
+FD <- read_csv("./Data/PreProcessed_Expr.csv",
+               show_col_types = FALSE) |> 
+  dplyr::select(-patRIL) |> 
+  mutate(Treat = factor(Treat)) |> 
+  as.data.frame()
+
+set.seed(94875)
+
+split <- initial_split(FD, strata = Treat, prop = 0.75) 
+
+Training_set <- training(split) 
+Test_set <- testing(split)
+```
+
+```{r}
+#| echo: true
+Training_set |> count(Treat)
+Test_set |> count(Treat)
+```
+
+
+## Fitting SVM to the Training set 
+
+```{r}
+#| echo: true
+#| output-location: slide
+library(kernlab)
+
+SVM_fit <- svm(Treat ~ ., 
+               data = Training_set, 
+               scale = TRUE,
+               type = "C-classification", 
+               kernel = "radial",
+               cost = 2)
+SVM_fit
+```
+
+
+## Predicting the Test set results 
+
+```{r}
+#| echo: true
+
+(Group_pred <- predict(SVM_fit, newdata = Test_set[, -1]) )
+```
+
+
+## Confusion matrix
+
+```{r}
+#| echo: true
+
+table(Test_set[, 1], Group_pred) 
+```
+
+
+## Plotting
+
+```{r}
+plot(SVM_fit,
+     data = Training_set,
+     formula = Dm01792789_g1 ~ Dm01793858_g1)
+```
+
+
+## Plotting
+
+```{r}
+plot(SVM_fit,
+     data = Training_set,
+     formula = Dm01792789_g1 ~ Dm01798339_g1)
+```
+
+
+## Going further
+
+- Continuous prediction instead of classification?
+    - "Regression" with SVM is possible
+- What predictors are important for classification?
+    - "Feature importance"
+    - [`mlr3verse` packages](https://mlr3book.mlr-org.com/)
+- Other "learners": [https://mlr-org.com/learners.html](https://mlr-org.com/learners.html)
+    
 
 ## References
 
