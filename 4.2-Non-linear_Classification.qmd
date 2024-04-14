@@ -57,7 +57,7 @@ Can we do better?
 
 ## Support Vector Machines
 
-- Bypasses the corelation problem via a "kernel"
+- Bypasses the correlation problem via a "kernel"
     - Linear, polynomial, radial, sigmoid
 - [Why is a support vector machine called a machine?](https://www.quora.com/Why-is-a-support-vector-machine-called-a-machine)
 
@@ -307,7 +307,6 @@ ggplot(FD, aes(y = Dm01792789_g1, x = Dm01798339_g1, color = Treat)) +
 ```{r}
 #| echo: true
 #| output-location: slide
-library(kernlab)
 
 SVM_fit <- svm(Treat ~ ., 
                data = Training_set, 

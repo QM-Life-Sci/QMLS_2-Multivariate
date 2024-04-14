@@ -15,7 +15,7 @@ bibliography: Multivariate.bib
 csl: evolution.csl
 ---
 
-## Linear Classification
+## Classification
 
 ```{r}
 #| label: setup
@@ -137,7 +137,7 @@ fig
     - Don't need to install
     - Need to load
 - Formula interface like `lm()`
-    - `xx` here is a factor with 3 levels
+    - `xx` here is a factor with 2 levels
 
 ```{r}
 #| echo: true
