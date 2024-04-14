@@ -36,32 +36,34 @@ set.seed(87231)
 
 ggplot2::theme_set(theme_cowplot())
 
-set.seed(347977)
-n <- 100
+## Simulate data for later lectures
 
-sigma <- rbind(c(1.0, 0.3),
-               c(0.3, 1.0))
-G1 <- rmvnorm(n = n, mean = c(-2, -2), sigma = sigma)
-G2 <- rmvnorm(n = n, mean = c(0, 2), sigma = sigma)
-G <- data.frame(rbind(G1, G2))
-
-SD2 <- data.frame(Group = factor(rep(LETTERS[1:2], each = n)),
-                 G)
-set.seed(347977)
-n <- 100
-
-sigma <- rbind(c(1.0, 0.3),
-               c(0.3, 1.0))
-G1 <- rmvnorm(n = n, mean = c(-2, -2), sigma = sigma)
-G2 <- rmvnorm(n = n, mean = c(0, 2), sigma = sigma)
-G3 <- rmvnorm(n = n, mean = c(2, -1), sigma = sigma)
-G <- data.frame(rbind(G1, G2, G3))
-
-SD3 <- data.frame(Group = factor(rep(LETTERS[1:3], each = n)),
-                 G)
-
-write_rds(SD2, file = "Data/SD2.rds")
-write_rds(SD3, file = "Data/SD3.rds")
+# set.seed(347977)
+# n <- 100
+# 
+# sigma <- rbind(c(1.0, 0.3),
+#                c(0.3, 1.0))
+# G1 <- rmvnorm(n = n, mean = c(-2, -2), sigma = sigma)
+# G2 <- rmvnorm(n = n, mean = c(0, 2), sigma = sigma)
+# G <- data.frame(rbind(G1, G2))
+# 
+# SD2 <- data.frame(Group = factor(rep(LETTERS[1:2], each = n)),
+#                  G)
+# set.seed(347977)
+# n <- 100
+# 
+# sigma <- rbind(c(1.0, 0.3),
+#                c(0.3, 1.0))
+# G1 <- rmvnorm(n = n, mean = c(-2, -2), sigma = sigma)
+# G2 <- rmvnorm(n = n, mean = c(0, 2), sigma = sigma)
+# G3 <- rmvnorm(n = n, mean = c(2, -1), sigma = sigma)
+# G <- data.frame(rbind(G1, G2, G3))
+# 
+# SD3 <- data.frame(Group = factor(rep(LETTERS[1:3], each = n)),
+#                  G)
+# 
+# write_rds(SD2, file = "Data/SD2.rds")
+# write_rds(SD3, file = "Data/SD3.rds")
 
 ```
 
@@ -71,7 +73,8 @@ write_rds(SD3, file = "Data/SD3.rds")
 - Methods when group membership is unknown ("unsupervised")
   - Clustering (many methods)
  
-## DFA/LDA is the converse of MANOVA 
+ 
+## LDA/DFA is the converse of MANOVA 
 
 **MANOVA**:
 
@@ -79,7 +82,9 @@ write_rds(SD3, file = "Data/SD3.rds")
 
 How well can a categorical predictor variable jointly predict a multivariate set of outcome variables?
 
-**Discriminant Function Analysis aka Linear Discriminant Analysis**
+. . .
+
+**Linear Discriminant Analysis (Discriminant Function Analysis)**
 
 `Site ~ Height + Mouth_Diam + Tube_Diam + Keel_Diam`
 
@@ -92,6 +97,7 @@ How well can a multivariate set of variables predict group membership (a categor
 - LDA emphasizes prediction of group membership
   - Which predictors relate to group differences
 - Mathematically they do the same thing
+
 
 ## Simulated Data
 
@@ -127,7 +133,11 @@ fig
 
 ## LDA
 
-- `lda()` is the function to perform linear discriminant analysis in R
+- `MASS::lda()` is the function to perform linear discriminant analysis in R
+    - Don't need to install
+    - Need to load
+- Formula interface like `lm()`
+    - `xx` here is a factor with 3 levels
 
 ```{r}
 #| echo: true
@@ -138,10 +148,11 @@ MM$scaling
 
 ## LDA
 
-- identifies the composite that maximally separates the groups on the dimensions of the response variable
+- Identifies the composite that maximally separates the groups on the dimensions of the response variable
 - MANOVA performs an ANOVA using this composite as the response variable
 
 $$Y_{composite} = 0.74~y_{1} + 0.49~y_{2} + 0.47~y_{3}$$
+
 
 ## Visualize for 2 continuous variables and 2 groups
 
@@ -225,8 +236,13 @@ dat |>
   geom_hline(yintercept = 0) +
   xlab("LDA score") +
   ylab("PC1 score") +
-  annotate("text", x = -0.5, y = 2.5, label = paste0("A = ",length(which(dat$ycomp<0 & dat$Group=="A")),"\n","B = ",length(which(dat$ycomp<0 & dat$Group=="B"))
-)) +
+  annotate(
+    "text", x = -0.5, y = 2.5,
+    label = paste0("A = ",
+                   length(which(dat$ycomp<0 &  dat$Group=="A")),
+                   "\n",
+                   "B = ",
+                   length(which(dat$ycomp<0 & dat$Group=="B")))) +
   annotate("text", x = 0.5, y = 2.5, label = paste0("A = ",length(which(dat$ycomp>0 & dat$Group=="A")),"\n","B = ",length(which(dat$ycomp>0 & dat$Group=="B"))
 ))+
   annotate("text", x = -2, y = -0.5, label = paste0("A = ",length(which(dat$pc1<0 & dat$Group=="A")),"\n","B = ",length(which(dat$pc1<0 & dat$Group=="B"))
@@ -235,6 +251,7 @@ dat |>
 ))
   
 ```
+
 
 ## Biological Example: Diet-Dependent Gene Expression in Fruit Flies
 
@@ -252,16 +269,21 @@ FD <- read_csv("./Data/PreProcessed_Expr.csv",
 
 ```
 
-## Fly LDA
+
+## Gene Expression LDA
+
+- `Treat` has 3 levels: C, DR, HS
+- Gene expression levels for 52 genes
 
 ```{r}
 #| echo: true
 
 Flda <- lda(Treat ~ ., data = FD)
 
-Flda$scaling[1:5,]
+Flda$scaling
 
 ```
+
 
 ## LDA with the `candisc` package
 
@@ -277,6 +299,7 @@ man1 <- lm(as.matrix(FD[,2:ncol(FD)]) ~ FD$Treat)
 can_lda <- candisc(man1)
 
 ```
+
 
 ## Contribution of variables
 
@@ -304,6 +327,7 @@ can_lda$structure[1:5,1]
 
 ```
 
+
 ## LDA for Classification
 
 - Can you accurately predict the diet from the composite gene expression score?
@@ -318,6 +342,7 @@ TT
 (sum(diag(TT))/sum(TT))* 100
 
 ```
+
 
 ## LDA for Classification
 
@@ -334,6 +359,7 @@ TT
 
 ```
 
+
 ## Logistic regression vs. LDA
 
 Both:
@@ -343,16 +369,21 @@ Both:
 - Uses linear combinations of variables
 - **Predict new observations**
 
+
 ## Logistic regression vs. LDA
 
 Differences:
 
 - Some assumptions
 - Predictive ability (depends on specifics)
-- See: [this stackexchange](https://stats.stackexchange.com/questions/95247/logistic-regression-vs-lda-as-two-class-classifiers)
+- See [this Stackexchange discussion](https://stats.stackexchange.com/questions/95247/logistic-regression-vs-lda-as-two-class-classifiers)
 - Ease of interpretation for different questions
 
-## Fly Multinomial Regression
+
+## Multinomial Regression
+
+- Logistic regression for >2 categories
+- `nnet::multinom()`
 
 ```{r}
 #| echo: true
@@ -362,7 +393,7 @@ F.mn <- multinom(Treat ~ ., data = FD)
 ```
 
 
-## Fly Multinomial Regression
+## Multinomial Regression
 
 ```{r}
 #| echo: true
@@ -373,9 +404,3 @@ predict(F.mn, FD[1,2:ncol(FD)])
 
 ```
 
-
-
-## References
-
-::: {#refs}
-:::
