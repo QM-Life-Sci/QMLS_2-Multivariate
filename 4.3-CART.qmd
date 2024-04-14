@@ -31,9 +31,12 @@ SD2 <- read_rds("Data/SD2.rds")
 SD3 <- read_rds("Data/SD3.rds")
 ```
 
-## CRAN Taskview
+## CRAN Task Views
 
-[Machine Learning](https://cran.r-project.org/web/views/MachineLearning.html)
+Collections of packages around different themes
+
+- [https://cran.r-project.org/web/views/](https://cran.r-project.org/web/views/)
+- [Machine Learning Task View](https://cran.r-project.org/web/views/MachineLearning.html)
 
 
 ## *Classification* and *Regression* Trees
@@ -42,7 +45,10 @@ SD3 <- read_rds("Data/SD3.rds")
 - Non-technical introduction [@Fielding2006-xa]
 - Introduction for ecologists [@Elith2008-qs]
 
-[`rpart`: Recursive Partitioning and Regression Trees](https://cran.r-project.org/package=rpart) and `rpart.plot` for plotting
+R Packages
+
+- [`rpart`: Recursive Partitioning and Regression Trees](https://cran.r-project.org/package=rpart)
+- `rpart.plot` for plotting
 
 
 ## Methodology
@@ -142,6 +148,7 @@ tree$cptable
 
 ```{r}
 #| echo: true
+#| fig-align: center
 
 prp(pruned_tree,
     faclen = 0,
@@ -229,6 +236,7 @@ tree$cptable
 
 ```{r}
 #| echo: true
+#| fig-align: center
 
 prp(pruned_tree,
     faclen = 0,
@@ -258,7 +266,13 @@ mean(pred.tree == Test_set$Treat) * 100
 ```
 
 
-## Multivariate Regression Trees
+## Going further
+
+- Multivariate Regression Trees [@Death2002-xn]
+- *The Elements of Statistical Learning* [@Hastie2009-xa]
+- *An Introduction to Statistical Learning: With Applications in R* [@James2013-oe]
+- [Introduction to Machine Learning](https://slds-lmu.github.io/i2ml/) - self-guided online course using `mlr3`
+
 
 
 
