@@ -1,0 +1,37 @@
+---
+title: "Problem Set 4"
+author:
+  - Your Name Here
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+code-annotations: hover
+---
+
+
+```{r}
+#| label: setup
+#| echo: true
+#| message: false
+#| warning: false
+
+# FIXME
+library(tidyverse)
+library(vegan)
+library(factoextra)
+
+theme_set(cowplot::theme_cowplot())
+
+# Datasets
+#     Birds.xlsx
+#     Santangelo_familyMean.csv
+
+```
+
+## Notes
+
+Bumpus paper has a kind of CART model
+
