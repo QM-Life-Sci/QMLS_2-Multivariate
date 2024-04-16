@@ -1,0 +1,376 @@
+---
+title: "Problem Set 3"
+author:
+  - Your Name Here
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+code-annotations: hover
+---
+
+
+```{r}
+#| label: setup
+#| echo: true
+#| message: false
+#| warning: false
+
+# FIXME
+library(tidyverse)
+library(vegan)
+library(factoextra)
+
+theme_set(cowplot::theme_cowplot())
+
+# Datasets
+#     Dune_Environment.csv
+#     Dune_Vegetation.csv
+#     Bumpus_sparrows.csv
+```
+
+## Distance measures for environmental and vegetation data
+
+Jongman et al. (1995)^[Jongman, R. H., C. J. F. T. Braak, and O. F. R. Van Tongeren. 1995. *Data Analysis in Community and Landscape Ecology*. Cambridge University Press, Cambridge.] present data for dune meadow vegetation and associated environmental data for 20 sites.
+
+We will use these data sets to explore distance measures.
+
+The environment data is in the file `Dune_Environment.csv`. The columns are:
+
+- `A1`: Thickness of the soil A1 horizon
+- `Moisture`: Ordered factor with levels 1, 2, 4, 5
+- `Management`: Factor with levels `BF` (Biological farming), `HF` (Hobby farming), `NM` (Nature Conservation Management), and `SF` (Standard Farming)
+- `Use`: Ordered factor of land-use with levels: `Hayfield` < `Haypastu` < `Pasture`
+- `Manure`: Ordered factor with levels 0 to 4
+
+Import the data, but keep only the columns `A1`, `Moisture`, and `Manure`. Although `Moisture` and `Manure` are ordered factors, they are integers in the raw data and not coded as factors. We will leave them as integers and treat them as though they were on the numeric scale. Although not ideal, this approach is probably acceptable, because they are ordered. So a "distance" from 1 to 3 really is a distance of 2, not a difference of 1, which would be the case if they were coded as factors.
+
+```{r}
+# FIXME
+
+DuneEnv <- read_csv("../Data/Dune_Environment.csv", show_col_types = FALSE) |> 
+  dplyr::select(A1, Moisture, Manure)
+```
+
+Use the `vegdist()` function from the `vegan` package to calculate the Euclidean and Bray-Curtis distance matrices for the environment data. We used `ecodist` in lecture, so this will give you some practice using the `vegan` package as well.
+
+```{r}
+# FIXME
+
+(Env_Euclidean <- vegdist(DuneEnv, method = "euclidean"))
+(Env_Bray <- vegdist(DuneEnv, method = "bray"))
+```
+
+These are large matrices (20 x 20), so visualizing can be challenging. In the chunk below, we have given you a function to plot a distance matrix as a heatmap where the cells are color filled by the value in the distance matrix. The two argument to the function are the distance matrix (`DM`) and number of rows in the data (`n`). Note that `n` is the number of rows in the data (e.g., 20 for these data), not the size of the distance matrix. The function returns a `ggplot` object, so you can "add" to the plot, using the usual `+` syntax.
+
+```{r}
+correlation_plot <- function(DM, n) {
+  M <- matrix(0, nrow = n, ncol = n)
+  M[lower.tri(M)] <- DM
+  M <- as.data.frame(M)
+  M$rownum <- 1:nrow(M)
+  M_long <- tidyr::pivot_longer(M, cols = -rownum, names_to = "colname") |> 
+    mutate(colname = str_remove(colname, "V") |> as.integer())
+  ggplot(M_long, aes(x = rownum, y = colname, fill = value)) +
+    geom_tile() +
+    scale_x_reverse(breaks = nrow(M):1, labels = 1:n) +
+    scale_y_continuous(breaks = 1:nrow(M), labels = n:1) +
+    coord_equal() +
+    theme(axis.title = element_blank())
+}
+```
+
+Use the function above to plot the distance matrices for the Euclidean and Bray-Curtis distances. Feel free to add an interesting `scale_fill...` of your choosing.
+
+```{r}
+# FIXME
+
+correlation_plot(Env_Euclidean, n = nrow(DuneEnv)) +
+  scale_fill_viridis_c(name = "Euclidean Distance")
+correlation_plot(Env_Bray, n = nrow(DuneEnv)) +
+  scale_fill_viridis_c(name = "Bray-Curtis Distance")
+```
+
+Based on the heatmaps, which site(s) appear to have the most "distance" from the others?
+
+> Sites 6 and 7 have the highest values for both types of distance.
+
+Let's repeat these analyses for the dune vegetation data in the file `Dune_Vegetation.csv`. This file contains:
+
+- Species counts for 30 species at each of 20 sites. Species (column names) are abbreviated to 4 + 4 characters.
+
+Load the vegetation data and explore the structure of the data.
+
+```{r}
+# FIXME
+
+DuneVeg <- read_csv("../Data/Dune_Vegetation.csv", show_col_types = FALSE)
+DuneVeg[1:10, 1:5]
+str(DuneVeg)
+```
+
+Calculate the Euclidean and Bray-Curtis distance matrices for the vegetation data as you did above for the environmental data.
+
+```{r}
+# FIXME
+Veg_Euclidean <- vegdist(DuneVeg, method = "euclidean")
+Veg_Bray <- vegdist(DuneVeg, method = "bray")
+```
+
+Make correlation plots for both as you did above.
+
+```{r}
+# FIXME
+
+correlation_plot(Veg_Euclidean, n = nrow(DuneVeg)) +
+  scale_fill_viridis_c(name = "Euclidean Distance")
+correlation_plot(Veg_Bray, n = nrow(DuneVeg)) +
+  scale_fill_viridis_c(name = "Bray-Curtis Distance")
+```
+
+Which site(s) appear to have the most distance from other sites for vegetation?
+
+> 20 has high distance from the rest of the sites. 4 and 5 are far apart as well.
+
+For you, which distance measure is easier to compare, Euclidean or Bray-Curtis?
+
+> They each have benefits, but because Bray is resacled to a 0-1 range it seems a little easier for comparison (for us).
+
+
+## Matrix comparisons
+
+Next we want to compare the distance matrices between vegetation and environment for these data using a Mantel test.
+
+In the `vegan` package, `mantel()` works similarly to the function of the same name in `ecodist`. The main difference is that in `vegan` `mantel()` does not use a formula (e.g., in `ecodist` the code is `mantel(D1 ~ D2)`). The two distance matrices are passed as separate parameters in `vegan`: `mantel(D1, D2)`.
+
+Carry out a Mantel test between the two Bray distance matrices: environmental data and vegetation data.
+
+```{r}
+# FIXME
+
+mantel(Env_Bray, Veg_Bray)
+```
+
+What is the null hypothesis of this test?
+
+> There is no correlation between the elements of the two matrices. In other words, the differences in species composition at the sites is not related to envorimental variation at the sites.
+
+What are your conclusions from the output of this test?
+
+> The Mantel *r* statistic is 0.59 with a P-value < 0.001, so there are significant correlations between the matrices. There *does* appear to be an association between vegetation and environment in these data.
+
+
+## House sparrow mortality
+
+One of the first tests of natural selection in the wild was observed by Hermon Carey Bumpus during a [winter storm in 1898](https://americanornithology.org/professor-bumpus-and-his-sparrows/), which caused differential mortality in house sparrows. Remember that this was only ~40 years after the publication of Darwin's *Origin of Species*. 
+
+Bumpus^[Bumpus, H. C. 1898. Eleventh lecture. The elimination of the unfit as illustrated by the introduced sparrow, *Passer domesticus*. (A fourth contribution to the study of variation.). Biological Lectures: Woods Hole Marine Biological Laboratory 209–225.] describes the mortality event:
+
+> "...on February 1 of the present year (1898), when, after an uncommonly severe storm of snow, rain, and sleet, a number of English sparrows were brought to the Anatomical Laboratory of Brown University. Seventy-two of these birds revived; sixty-four perished;..." (p. 209).
+
+What Bumpus calls "English sparrows" are *Passer domesticus*, commonly referred to as House sparrows today.
+
+Rare for the time (and regrettably rare even today), Bumpus published the raw data with the paper. These data have been analyzed and re-analyzed many times since then. For example:
+
+- Grant, P. R. 1972. Centripetal Selection and the House Sparrow. Syst. Zool. 21:23–30.
+- Johnston, R. F., D. M. Niles, and S. A. Rohwer. 1972. Hermon Bumpus and Natural Selection in the House Sparrow *Passer domesticus*. Evolution 26:20–31.
+- O’Donald, P. 1973. A Further Analysis of Bumpus’ Data: The Intensity of Natural Selection. Evolution 27:398–404.
+- Buttemer, W. A. 1992. Differential Overnight Survival by Bumpus’ House Sparrows: An Alternate Interpretation. Condor 94:944–954.
+
+The `Bumpus_sparrows.csv` data contains Bumpus's data. The data have the following columns:
+
+- `subject`: Subject number from Bumpus's tables. The data were present across multiple tables in the original publication, each of which started number at 1. Drop this column.
+- `sex`: `f` or `m`
+- `age`: `a` for adult, `y` for young; only male birds were coded
+- `survived`: Boolean, `TRUE` if the bird survived
+- `WT`: Weight (g)
+- `TL`: Body length (mm)
+- `AE`: Wing length (mm)
+- `BHL`: Beak + Head length (mm)
+- `HL`: Humerus length (mm)
+- `FL`: Femur length (mm)
+- `TTL`: Tibiotarsus length (mm)
+- `SW`: Skull width (mm)
+- `SKL`: Sternal keel length (mm)
+
+Load the data and drop the `subject` column. Count the number of individuals by `sex`, `age`, and `survived`.
+
+```{r}
+# FIXME
+
+HS <- read_csv("../Data/Bumpus_sparrows.csv", show_col_types = FALSE) |> 
+  dplyr::select(-subject)
+
+glimpse(HS)
+
+HS |> count(sex, age, survived)
+```
+
+You will see that all the females are listed as `NA` for age. Without dimorphism between juvenile and adult females, it was not possible to assign and age class to these birds. We will ignore age for the remainder of this exercise.
+
+We will start by examining the relationships between the morphological variables `TL` through `SKL` in the table (columns 5-12).
+
+Generate a correlation table for these variables. Pass this correlation table to the function `corrplot::corrplot()`^[Install `corrplot` if you need to.] to make a plot of the correlations similar to the one we made for distance matrices above.
+
+```{r}
+# FIXME
+
+(r <- cor(HS[, 5:12]))
+corrplot::corrplot(r)
+```
+
+What do you observe in the correlations?
+
+> All of the variables are positively correlated with one another and fiarly highly so.
+
+To explore these correlations, carry out a PCA on the morphological measures.
+
+- Center and scale the variables as is customary
+- Generate the summary for the PCA
+- Make biplots of PC2 vs. PC1 and PC3 vs. PC2.
+
+Refer to PS 2 if you need a reminder.
+
+```{r}
+# FIXME
+
+pca_HS <- prcomp(HS[, 5:12], center = TRUE, scale. = TRUE)
+pca_HS
+summary(pca_HS)
+
+fviz_pca_var(pca_HS, addlabels = TRUE, repel = TRUE, axes = c(1, 2))
+fviz_pca_var(pca_HS, addlabels = TRUE, repel = TRUE, axes = c(2, 3))
+```
+
+What is the loading pattern on PC 1? What does PC1 represent in the data?
+
+> All variables load positively. PC1 is size.
+
+Can you make sense of PCs 2 and 3?
+
+> PC2 differentiates additional measures of general size (total length, wing span, and keel) from limb and skull length measures. PC3 appears to be "head" vs. "not head", so maybe the head dimensions have a different scaling pattern from the other measurements.
+
+Make a scatterplot PCs 1 and 2, and color code the points by `sex`.
+
+```{r}
+# FIXME
+
+HS <- HS |> 
+  mutate(PC1 = pca_HS$x[, 1],
+         PC2 = pca_HS$x[, 2],
+         PC3 = pca_HS$x[, 3])
+
+ggplot(HS, aes(PC1, PC2, color = sex)) +
+  geom_point(size = 3) +
+  ggsci::scale_color_nejm()
+```
+
+Do the birds appear to separate by sex?
+
+> Yes. Generally low PC scores are females and high PC scores are males. There is significant overlap between the sexs though.
+
+
+We will use a MANOVA to test for multivariate differences in sex. Because MANOVA can be difficult to visualize, often doing an exploratory PCA prior to the analysis is useful, like we have done here. Remember that MANOVA and PCA are *not* identical (PCA does not consider groups when accounting for variance), but there are commonalities to the approaches, which means that PCA prior to MANOVA can be useful.
+
+Carry out a MANOVA where the morphological variables (columns 5-12) are modeled by sex. Use `summary()` to summarize the model.
+
+```{r}
+# FIXME
+
+mod1 <- manova(as.matrix(HS[, 5:12]) ~ sex, data = HS)
+summary(mod1)
+```
+
+Is there a multivariate difference between sexes in house sparrows?
+
+> Yes, there appears to be. P is very small.
+
+Now set up two additional models:
+
+1. The same outcome matrix modeled by the *additive* effects of sex and survival.
+2. The same outcome matrix modeled by the *interactive* effects of sex and survival.
+
+Additive and interaction model formulas work the same in MANOVA as in other linear models (`+` and `*`, respectively).
+
+```{r}
+# FIXME
+
+mod2 <- manova(as.matrix(HS[, 5:12]) ~ sex + survived, data = HS)
+summary(mod2)
+
+mod3 <- manova(as.matrix(HS[, 5:12]) ~ sex * survived, data = HS)
+summary(mod3)
+```
+
+Use `anova()` to carry out model comparison between the three nested models you have fit.
+
+```{r}
+# FIXME
+
+anova(mod1, mod2, mod3)
+```
+
+What do you learn from this analysis?
+
+> The additive model is preferred to the simpler model and the interaction model.
+
+Use `summary.aov()` to examine the individual ANOVAs for the outcome variables.
+
+```{r}
+# FIXME
+
+summary.aov(mod2)
+```
+
+Which variable(s) appear to be contributing most to the differences for sex and for survival?
+
+> For sex: total length, wing span, and keel length are the most significant. For survival, total length is the main driver of the effect.
+
+
+## PERMANOVA with the dune data
+
+Finally, we will return to the dune data from above to try a PERMANOVA. We will model Bray-Curtis distance for vegetation by two categorical variables: `Management` and `Use`.
+
+Reload the dune environment data like above, but this time keep the `Management` and `Use` columns (we dropped them above).
+
+```{r}
+# FIXME
+
+DuneEnv <- read_csv("../Data/Dune_Environment.csv", show_col_types = FALSE)
+```
+
+We will fit three PERMANOVA models:
+
+1. Bray-Curtis distance for vegetation modeled by management
+2. Bray-Curtis distance for vegetation modeled by the additive effects of management and use
+3. Bray-Curtis distance for vegetation modeled by the interactive effects of management and use
+
+Run these models using `adonis2()`. There is no summary or post-hoc ANOVA possible.
+
+```{r}
+# FIXME
+
+adonis2(Veg_Bray ~ Management, data = DuneEnv)
+
+adonis2(Veg_Bray ~ Management + Use, data = DuneEnv)
+
+adonis2(Veg_Bray ~ Management * Use, data = DuneEnv)
+```
+
+What do you learn from these three models?
+
+> It looks like most of the difference in Bray distance between sites is attributable to management and not to use (or the interaction).
+
+Finally, run a model for the additive effects of management and use (model 2 above) but reverse the order of the variables in the model statement from what you used above.
+
+```{r}
+# FIXME
+
+adonis2(Veg_Bray ~ Use + Management, data = DuneEnv)
+```
+
+What is different about the two models? What do you need to think carefully about when constructing a PERMANOVA with `adonis2()` (or a MANOVA `manova()` as well)?
+
+> The coefficients are different, so the order matters in the model formula. Predictors are added sequentially, which means that variance explain by the first predictor is removed before testing the second. No "Type III" sums of squares option is possible for these models. You must think carefully about the order in which predictors are added.
