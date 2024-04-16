@@ -1,0 +1,64 @@
+---
+title: "Classification and Regression Trees"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+bibliography: Multivariate.bib
+csl: evolution.csl
+---
+
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+
+ggplot2::theme_set(theme_cowplot())
+
+SD2 <- read_rds("Data/SD2.rds")
+SD3 <- read_rds("Data/SD3.rds")
+```
+
+## Columbia Basin Project
+
+The [Columbia Basin Project](https://www.usbr.gov/pn/grandcoulee/cbp/index.html) created dams and interconnected formely isolated waterways via hundreds of miles of canals and thousands of miles of drainages and other connections.  
+
+![](https://media.defense.gov/2019/Apr/21/2002468397/-1/-1/0/161118-A-A1408-301.JPG){fig-align="center"}
+
+Although megafauna such as fish species have been negatively impacted (see above), less is known about the impacts on communities of smaller animals. Strecker and Brittain (2017)^[Strecker, A. L., and J. T. Brittain. 2017. Increased habitat connectivity homogenizes freshwater communities: historical and landscape perspectives. J. Appl. Ecol. 54:1343–1352.] explored the diversity of zooplankton as a function of habitat connections.
+
+These authors asked the question: "How does increasing connectivity of waterways alter aquatic zooplankton community?"
+
+We have two datasets 
+
+```{r}
+SE <- read_csv("../Data/Strecker_env.csv", show_col_types = FALSE)
+SZ <- read_csv("../Data/Strecker_zooplankton.csv", show_col_types = FALSE)
+```
+
+
+```{r}
+SZ_Bray <- vegdist(SZ[, -1], method = "bray")
+adonis2(SZ_Bray ~ type, data = SE)
+
+```
+
+
+
+## References
+
+::: {#refs}
+:::
+
