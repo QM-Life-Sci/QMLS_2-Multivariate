@@ -254,6 +254,6 @@ summary(mod)
 
 What would you conclude from this analysis? How do plants change as you move away from the city center?
 
->
+> Moving away from the city center, changes in scores on PC1 indicate that plants are larger (biomass) and have larger flowers. The changes on PC3 indicate that plants further from the city germinate later, have a higher seed set, and have thinner stolons. #FIXME
 
 
