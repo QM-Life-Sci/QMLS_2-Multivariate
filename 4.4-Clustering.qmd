@@ -1,0 +1,66 @@
+---
+title: "Clustering"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+bibliography: Multivariate.bib
+csl: evolution.csl
+---
+
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+
+ggplot2::theme_set(theme_cowplot())
+
+SD2 <- read_rds("Data/SD2.rds")
+SD3 <- read_rds("Data/SD3.rds")
+```
+
+## Clustering
+
+- A general term for any method that has a goal of grouping observations
+  - Key feature is categorization into discrete groups. Not appropriate method when you don't expect discontinuity.
+- Often the underlying groups (how many, what they represent) are unknown
+  - "Unsupervised": the method does not use any information about known groupings
+- Considers one set of variables
+  - No response variables or predictor variables
+- Typically does not include decision-making (aka hypothesis testing) 
+  - Goal is to characterize the patterns in the data in a descriptive way
+
+## Clustering
+
+- Major categories include
+  - Hierarchical or not?
+  - Begin with many & group or begin with one & break apart?
+- There are **many** clustering methods
+  - *A Comprehensive Survey of Clustering Algorithms* [@Xu2015-dk]
+- We will cover:
+  - Hierarchical clustering
+  - k-means clustering
+
+## Hierarchical clustering
+
+- Creates a hierarchy with groups & subgroups etc.
+- Begins with each observation in its own group & fuses to create clusters
+- Based on distance (aka similarity among observations)
+
+## References
+
+::: {#refs}
+:::
+
