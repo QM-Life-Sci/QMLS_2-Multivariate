@@ -16,6 +16,19 @@ bibliography: Multivariate.bib
 csl: evolution.csl
 ---
 
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(corrplot)
+library(factoextra)
+library(FactoMineR)
+library(cowplot)
+```
+
+
 ## Unit overview
 
 1. PCA revisited, Factor Analysis
@@ -105,6 +118,99 @@ Environmental variables, fish species, and spatial coordinates for 30 sites on t
 
 ```{r}
 load("Data/Doubs.RData")
+
+env <- env |> 
+  rename(Dist_Source = dfs,
+         Elevation = ele,
+         Slope = slo,
+         Mean_Min_Disch = dis,
+         Hardness  = har,
+         Phosphate = pho,
+         Nitrate = nit,
+         Ammonium = amm,
+         Diss_Oxygen = oxy,
+         Biol_O_Demand = bod)
+```
+
+
+## Correlation plot
+
+```{r}
+#| echo: true
+corrplot(cor(env), type = "lower")
+```
+
+
+## PCA
+
+```{r}
+#| echo: true
+pca_env <- prcomp(env, center = TRUE, scale. = TRUE)
+pca_env
+summary(pca_env)
+```
+
+
+## PCA
+
+```{r}
+plot_grid(
+  fviz_pca_var(pca_env, addlabels = TRUE, repel = TRUE, axes = c(1, 2)),
+  fviz_pca_var(pca_env, addlabels = TRUE, repel = TRUE, axes = c(2, 3))
+)
+```
+
+
+## Factor Analysis
+
+- `lavaan::efa()`
+- `FactoMineR::FAMD()`: Mixed continuous and categorical variables, missing data
+
+```{r}
+#| echo: true
+
+env_s <- apply(env, MARGIN = 2, FUN = scale) |> 
+  as.data.frame()
+
+FA <- lavaan::efa(env_s, nfactors = 1:3)
+```
+
+
+```{r}
+#| echo: true
+
+summary(FA)
+```
+
+
+## Factor Analysis for Mixed Data
+
+```{r}
+#| echo: true
+#| warning: false
+
+f_famd <- FAMD(fishtraits, ncp = 2, graph = FALSE)
+plot(f_famd, choix = "quanti")
+```
+
+
+## Factor Analysis for Mixed Data
+
+```{r}
+#| echo: true
+#| warning: false
+
+plot(f_famd, choix = "ind")
+```
+
+
+## Factor Analysis for Mixed Data
+
+```{r}
+#| echo: true
+#| warning: false
+
+# summary(f_famd)
 ```
 
 
