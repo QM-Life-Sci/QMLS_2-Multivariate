@@ -1,5 +1,5 @@
 ---
-title: "Classification and Regression Trees"
+title: "Nonmetric Multidimensional Scaling"
 author:
   - Elizabeth King
   - Kevin Middleton

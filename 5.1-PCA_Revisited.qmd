@@ -1,0 +1,115 @@
+---
+title: "Making Composite Variables"
+subtitle: "PCA Revisited"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+bibliography: Multivariate.bib
+csl: evolution.csl
+---
+
+## Unit overview
+
+1. PCA revisited, Factor Analysis
+2. Nonmetric Multidimensional Scaling (NMDS)
+3. Canonical Correspondence and Canonical Correlation
+4. Mixtures: Hierarchical Clustering on Principal Components (HCPC)
+
+
+## Resources specific to this unit
+
+- *Numerical Ecology with R* [@Borcard2011-ks]
+- *Using Multivariate Statistics* [@Tabachnick2019-tl]
+- *Applied Multivariate Statistics in R* [@Bakker2024-mg]
+- [`FactoMineR` documentation](http://factominer.free.fr/index.html)
+
+
+## Ordination
+
+- "Ordination is the collective term for multivariate techniques that arrange sites along axes on the basis of data on species composition" [@Ter_Braak1987-ot]
+- "The term 'ordination' derives from early attempts to order a group of objects, for example in time or along an environmental gradient. Nowadays the term is used more generally and refers to an 'ordering' in any number of dimensions (preferably few) that approximates some pattern of response of the set of objects." [@Digby1987-pr]
+
+
+## Kinds of ordination
+
+*Unconstrained*
+
+- PCA, Factor Analysis (FA)
+- Nonmetric Multidimensional Scaling (NMDS)
+- Not covered: Coordinate Analysis, Principal Coordinate Analysis
+
+*Canonical* (Constrained)
+
+- Canonical Correspondence 
+- Canonical Correlation
+
+
+## PCA and Factor Analysis
+
+> The specific goals of PCA or FA are to summarize patterns of correlations among observed variables, to reduce a large number of observed variables to a smaller number of factors, to provide an operational definition ... for an underlying process by using observed variables, or to test a theory about the nature of underlying processes.
+
+> A good PCA or FA "makes sense"; a bad one does not.
+
+<div class="ref">
+Tabachnick and Fidell [-@Tabachnick2019-tl]
+</div>
+
+
+## Similarities
+
+- Reduce dimensionality
+- Patterns of correlations
+- Use eigenvalues and eigenvectors
+
+
+## What variance is analyzed?
+
+- PCA: all of the variance
+- FA: only the *shared* variance (unobserved factors "cause" variables)
+    - "What are the underlying processes that could have produced correlations among these variables?" [@Tabachnick2019-tl]
+
+Output:
+
+- PCA: components
+- FA: factors
+
+
+## FA questions
+
+- How many factors are there?
+- What do the factors mean?
+- How much variance do the factors account for?
+
+## Doubs River
+
+![](https://www.worldatlas.com/upload/7a/b5/6d/shutterstock-1526708120.jpg){fig-align=center}
+
+
+## Doubs River data
+
+Environmental variables, fish species, and spatial coordinates for 30 sites on the Doubs river [@Verneaux1973-zk].
+
+1. `spe`: abundances of 27 fish species
+2. `fishtraits`: traits for 27 species of fish
+3. `env`: 11 environmental variables related to river hydrology, geomorphology, and chemistry
+4. `latlong`: geographical coordinates (Latitude-Longitude) of the sites
+5. `spa`: geographical coordinates (X-Y)
+
+```{r}
+load("Data/Doubs.RData")
+```
+
+
+## References
+
+::: {#refs}
+:::
+
