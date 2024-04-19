@@ -24,23 +24,36 @@ csl: evolution.csl
 
 library(tidyverse)
 library(cowplot)
+library(vegan)
+library(ggdendro)
+library(factoextra)
+
+set.seed(238283)
 
 ggplot2::theme_set(theme_cowplot())
 
 SD2 <- read_rds("Data/SD2.rds")
-SD3 <- read_rds("Data/SD3.rds")
+SD3 <- read_rds("Data/SD3.rds") |> 
+  slice_sample(prop = 0.1, by = Group) |> 
+  mutate(Obs = 1:n())
 ```
+
 
 ## Clustering
 
 - A general term for any method that has a goal of grouping observations
-  - Key feature is categorization into discrete groups. Not appropriate method when you don't expect discontinuity.
+    - Key feature is categorization into discrete groups. Not appropriate method when you don't expect discontinuity.
 - Often the underlying groups (how many, what they represent) are unknown
-  - "Unsupervised": the method does not use any information about known groupings
+    - "Unsupervised": the method does not use any information about known groupings
+    
+
+## Clustering
+
 - Considers one set of variables
-  - No response variables or predictor variables
-- Typically does not include decision-making (aka hypothesis testing) 
-  - Goal is to characterize the patterns in the data in a descriptive way
+    - No response variables or predictor variables
+- Typically does not include decision-making (e.g., hypothesis testing) 
+    - Goal is to characterize the patterns in the data in a descriptive way
+
 
 ## Clustering
 
@@ -53,11 +66,268 @@ SD3 <- read_rds("Data/SD3.rds")
   - Hierarchical clustering
   - k-means clustering
 
+
+## Simulated data
+
+```{r}
+ggplot(SD3, aes(X1, X2, color = Group)) +
+  geom_point(size = 3) +
+  coord_equal() +
+  scale_color_brewer(type = "qual", palette = "Set1")
+```
+
+
 ## Hierarchical clustering
 
-- Creates a hierarchy with groups & subgroups etc.
+- Creates a hierarchy with groups, subgroups, etc.
 - Begins with each observation in its own group & fuses to create clusters
-- Based on distance (aka similarity among observations)
+- Based on distance (i.e., similarity among observations)
+    - "Nearest neighbor sorting"
+
+
+## Clustering with `stats::hclust()`
+
+- Many options for clustering methods: `?hclust`
+    - Averages: `average`, `centroid`, `median`
+    - `ward.D2` finds compact "spheres"
+    - `single` does single linkage: "neighbors of neighbors"
+
+```{r}
+#| echo: true
+
+d <- vegdist(SD3[, 2:3], method = "euclidean")
+hc <- hclust(d, method = "ward.D2")
+```
+
+
+## Plotting a dendrogram
+
+```{r}
+#| echo: true
+
+plot(hc)
+```
+
+
+## Data and its dendrogram
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+P1 <-   ggplot(SD3, aes(X1, X2, color = Group, label = Obs)) +
+  geom_text() +
+  coord_equal() +
+  scale_color_brewer(type = "qual", palette = "Set1") +
+    theme(legend.position = "none")
+
+P2 <- ggdendro::ggdendrogram(hc)
+
+plot_grid(P1, P2)
+```
+
+
+## Identifying interpretable clusters
+
+There is no "truth". Compare different methods.
+
+- "Cut" the tree at one or more levels
+- *A priori* define a set number of groups
+- Examine fusion level values
+
+
+## Fusion level values
+
+```{r}
+#| echo: true
+
+hc$height
+```
+
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+tibble(k = nrow(SD3):2, Height = hc$height) |> 
+  ggplot(aes(k, Height, label = k)) +
+  geom_step() +
+  ggrepel::geom_label_repel(color = "firebrick4") +
+  labs(x = "Number of Clusters", y = "Node Height")
+```
+
+
+## Application to fly diets
+
+```{r}
+FD <- read_csv("./Data/PreProcessed_Expr.csv",
+               show_col_types = FALSE) |> 
+  dplyr::select(-patRIL) |> 
+  mutate(Treat = factor(Treat)) |> 
+  as.data.frame()
+
+P1 <- ggplot(FD, aes(y = Dm01792789_g1, x = Dm01798339_g1, color = Treat)) +
+         geom_point()
+P1
+```
+
+
+## Application to fly diets
+
+```{r}
+#| echo: true
+
+d <- vegdist(FD[, 2:ncol(FD)], method = "euclidean")
+hc <- hclust(d, method = "ward.D2")
+```
+
+
+## Fusion level plot
+
+```{r}
+P1 <- ggdendrogram(hc, labels = FALSE)
+P2 <- tibble(k = nrow(FD):2, Height = hc$height) |> 
+  filter(k <= 15) |> 
+  arrange(k) |> 
+  ggplot(aes(k, Height, label = k)) +
+  geom_step() +
+  ggrepel::geom_label_repel(color = "firebrick4") +
+  labs(x = "Number of Clusters", y = "Node Height") +
+  scale_y_continuous(limits = c(0, 80))
+plot_grid(P1, P2, align = "hv")
+
+```
+
+
+## k-Means Clustering
+
+- Groups are defined by highest density areas
+- Iteratively minimizes the summed within-group sums-of-squares ("total error SS")
+    - Squared distance from each observation to the centroid of that group
+- Species-level data should be standardized (i.e., many zeros)
+- Multiple start values, compare TESS values
+- How many clusters?
+
+
+## Using `stats::kmeans()` via `vegan::cascadeKM()`
+
+- `inf.gr`: Lower bound of k (min)
+- `sup.gr`: Upper bound of k (max)
+- `iter`: Number of random start values for each k
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+km <- cascadeKM(SD3[, 2:3], inf.gr = 2, sup.gr = 4, iter = 100)
+km
+```
+
+
+## Plotting
+
+```{r}
+#| echo: true
+
+plot(km, sortg = FALSE)
+```
+
+
+## Plotting
+
+```{r}
+#| echo: true
+
+plot(km, sortg = TRUE)
+```
+
+
+## Application to fly diets
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+km <- cascadeKM(FD[, 2:ncol(FD)], inf.gr = 2, sup.gr = 10, iter = 100)
+km
+```
+
+
+## Plotting
+
+```{r}
+#| echo: true
+
+plot(km, sortg = FALSE)
+```
+
+
+## Plotting
+
+```{r}
+#| echo: true
+
+plot(km, sortg = TRUE)
+```
+
+
+## k-Medoid clustering
+
+*Medoid*: set of observations that minimizes the summed dissimilarity
+
+Steps:
+
+1. Find a set of k medoids
+2. Assign each observation to the nearest medoid
+
+
+## Partitioning Around Medoids
+
+- Robust because it dissimilarity rather than SS
+- Input: raw data or dissimilarity matrix
+    - More flexible than k-means
+
+```{r}
+library(cluster)
+pam_2 <- pam(SD3[, 2:3], k = 2)
+pam_3 <- pam(SD3[, 2:3], k = 3)
+```
+
+
+## Plotting with `factoextra`
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+P1 <- fviz_cluster(pam_2, SD3[, 2:3], ellipse.type = "norm") +
+  theme_minimal()
+P2 <- fviz_cluster(pam_3, SD3[, 2:3], ellipse.type = "norm") +
+  theme_minimal()
+plot_grid(P1, P2)
+```
+
+
+## Silhouettes
+
+- Relative probability of correct cluster for each observation
+- 1 = Very good
+- < 0 = Probably incorrect
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+sil <- silhouette(pam_3$cluster, dist(SD3[, 2:3]))
+fviz_silhouette(sil, print.summary = FALSE)
+```
+
+
+## More reading
+
+- Legendre and Legendre [-@Legendre2012-gp]
+- Borcard et al. [-@Borcard2011-ks]
+
 
 ## References
 

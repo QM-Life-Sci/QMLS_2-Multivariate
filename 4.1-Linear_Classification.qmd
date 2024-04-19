@@ -146,6 +146,7 @@ MM <- lda(xx ~ y1 + y2 + y3, data = dat)
 MM$scaling
 ```
 
+
 ## LDA
 
 - Identifies the composite that maximally separates the groups on the dimensions of the response variable
@@ -198,6 +199,7 @@ $$Y_{composite} = ~LD1~x_{s1} + LD2~x_{s2}$$
 
 $$x_{s2} = -\frac{LD1}{LD2}~x_{s1}$$
 
+
 ## Visualize for 2 continuous variables and 2 groups
 
 ```{r}
@@ -215,13 +217,14 @@ dat |>
 
 ```
 
-## PCA vs LDA
+
+## PCA vs. LDA
 
 - LDA also maximizes the separation between groups
 
 ```{r}
 
-pcaM <- prcomp(~X1+X2, data=dat, center =TRUE, scale.=TRUE)
+pcaM <- prcomp(~ X1 + X2, data=dat, center = TRUE, scale. = TRUE)
 dat$pc1 <- pcaM$x[,1]
 dat$pc2 <- pcaM$x[,2]
 
@@ -238,18 +241,24 @@ dat |>
   ylab("PC1 score") +
   annotate(
     "text", x = -0.5, y = 2.5,
-    label = paste0("A = ",
-                   length(which(dat$ycomp<0 &  dat$Group=="A")),
-                   "\n",
-                   "B = ",
-                   length(which(dat$ycomp<0 & dat$Group=="B")))) +
-  annotate("text", x = 0.5, y = 2.5, label = paste0("A = ",length(which(dat$ycomp>0 & dat$Group=="A")),"\n","B = ",length(which(dat$ycomp>0 & dat$Group=="B"))
-))+
-  annotate("text", x = -2, y = -0.5, label = paste0("A = ",length(which(dat$pc1<0 & dat$Group=="A")),"\n","B = ",length(which(dat$pc1<0 & dat$Group=="B"))
-))+
-  annotate("text", x = -2, y = 0.5, label = paste0("A = ",length(which(dat$pc1>0 & dat$Group=="A")),"\n","B = ",length(which(dat$pc1>0 & dat$Group=="B"))
-))
-  
+    label = paste0("A = ", length(which(dat$ycomp<0 &  dat$Group=="A")), "\n",
+                   "B = ", length(which(dat$ycomp<0 & dat$Group=="B")))) +
+  annotate(
+    "text", x = 0.5, y = 2.5,
+    label = paste0("A = ",length(which(dat$ycomp>0 & dat$Group=="A")),"\n",
+                   "B = ",length(which(dat$ycomp>0 & dat$Group=="B"))
+    )) +
+  annotate(
+    "text", x = -2, y = -0.5,
+    label = paste0("A = ",length(which(dat$pc1<0 & dat$Group=="A")),"\n",
+                   "B = ",length(which(dat$pc1<0 & dat$Group=="B"))
+    )) +
+  annotate(
+    "text", x = -2, y = 0.5,
+    label = paste0("A = ",length(which(dat$pc1>0 & dat$Group=="A")),"\n",
+                   "B = ",length(which(dat$pc1>0 & dat$Group=="B"))
+  ))
+
 ```
 
 
