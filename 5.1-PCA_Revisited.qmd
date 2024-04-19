@@ -101,35 +101,22 @@ Output:
 - What do the factors mean?
 - How much variance do the factors account for?
 
-## Doubs River
 
-![](https://www.worldatlas.com/upload/7a/b5/6d/shutterstock-1526708120.jpg){fig-align=center}
+## Pitcher Plant Site Soil Chemistry
+
+![](./Images/Darlingtonia.png){fig-align="center"}
+
+*Darlingtonia californica* data from Ellison and Farnsworth [-@Ellison2005-cs]
 
 
-## Doubs River data
-
-Environmental variables, fish species, and spatial coordinates for 30 sites on the Doubs river [@Verneaux1973-zk].
-
-1. `spe`: abundances of 27 fish species
-2. `fishtraits`: traits for 27 species of fish
-3. `env`: 11 environmental variables related to river hydrology, geomorphology, and chemistry
-4. `latlong`: geographical coordinates (Latitude-Longitude) of the sites
-5. `spa`: geographical coordinates (X-Y)
+## Pitcher Plant Site Soil Chemistry
 
 ```{r}
-load("Data/Doubs.RData")
+#| echo: true
 
-env <- env |> 
-  rename(Dist_Source = dfs,
-         Elevation = ele,
-         Slope = slo,
-         Mean_Min_Disch = dis,
-         Hardness  = har,
-         Phosphate = pho,
-         Nitrate = nit,
-         Ammonium = amm,
-         Diss_Oxygen = oxy,
-         Biol_O_Demand = bod)
+PP <- read_csv("Data/Darlingtonia.csv", show_col_types = FALSE) |> 
+  dplyr::select(1, 15:21)
+str(PP)
 ```
 
 
@@ -137,7 +124,8 @@ env <- env |>
 
 ```{r}
 #| echo: true
-corrplot(cor(env), type = "lower")
+
+corrplot(cor(PP[, 2:8]), type = "lower")
 ```
 
 
@@ -145,7 +133,7 @@ corrplot(cor(env), type = "lower")
 
 ```{r}
 #| echo: true
-pca_env <- prcomp(env, center = TRUE, scale. = TRUE)
+pca_env <- prcomp(PP[, 2:8], center = TRUE, scale. = TRUE)
 pca_env
 summary(pca_env)
 ```
@@ -169,10 +157,10 @@ plot_grid(
 ```{r}
 #| echo: true
 
-env_s <- apply(env, MARGIN = 2, FUN = scale) |> 
+cont_tr_s <- apply(PP[, 2:8], MARGIN = 2, FUN = scale) |> 
   as.data.frame()
 
-FA <- lavaan::efa(env_s, nfactors = 1:3)
+FA <- lavaan::efa(cont_tr_s, nfactors = 3)
 ```
 
 
@@ -189,7 +177,7 @@ summary(FA)
 #| echo: true
 #| warning: false
 
-f_famd <- FAMD(fishtraits, ncp = 2, graph = FALSE)
+f_famd <- FAMD(PP, ncp = 3, graph = FALSE)
 plot(f_famd, choix = "quanti")
 ```
 
@@ -210,7 +198,7 @@ plot(f_famd, choix = "ind")
 #| echo: true
 #| warning: false
 
-# summary(f_famd)
+summary(f_famd)
 ```
 
 

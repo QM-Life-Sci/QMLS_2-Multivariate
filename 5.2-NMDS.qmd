@@ -24,37 +24,286 @@ csl: evolution.csl
 
 library(tidyverse)
 library(cowplot)
+library(vegan)
+library(gt)
 
 ggplot2::theme_set(theme_cowplot())
-
-SD2 <- read_rds("Data/SD2.rds")
-SD3 <- read_rds("Data/SD3.rds")
 ```
+
+
+## NMDS vs. PCA
+
+- When the goal doesn't include preserving *exact* distances
+    - PCA uses Euclidean distance
+- NMDS preserves the rank ordering of distances
+    - Like a non-parametric version of PCA
+- No need for multivariate normality
+- Missing data less of a problem
+    - As long as the *relative* order can be determined from the other data
+
+<div class="ref">
+Legendre and Legendre [-@Legendre1998-ca]
+</div>
+
+
+## NMDS is *very* flexible, but...
+
+- Not an eigenanalysis technique
+- Does not maximize the variability associated with individual axes of the ordination
+    - Rotations are arbitrary, not orthogonal
+    - Plots and be inverted, rotated, etc. for interpretation 
+
+
+## General method
+
+1. Define original data points in multidimensional space based on distances between sites
+2. Specify the number of reduced dimensions you want (often 2)
+3. Construct an initial configuration of the data
+4. Compare distances in this initial configuration against calculated distances
+5. Determine *stress* on data points
+6. Adjust the position of the points in the dimensional space you have chosen (e.g., 2D) to minimize stress for all points
+
+
+## Stress
+
+- Describes the difference between the distance values from multidimensional space calculated from the original distance matrix and the distance between points in the reduced dimension representation
+    - How far the distances in the new configuration are from being proportional to the original distances
+- "Pulling on all points a little bit so no single point is completely wrong, all points are a little off compared to distances"
+- Iteratively adjust until the stress value is minimized or reaches a predetermined tolerance.
+
+
+## NMDS challenges
+
+- Computationally intensive: $\mathcal{O} (n^2)$
+- No guarantee of finding the best solution
+    - Risk of finding local minima
+    - "Non-linear optimization is a hard task"
+- Use many random start values and compare final stress as goodness-of-fit
+
 
 ## Columbia Basin Project
 
-The [Columbia Basin Project](https://www.usbr.gov/pn/grandcoulee/cbp/index.html) created dams and interconnected formely isolated waterways via hundreds of miles of canals and thousands of miles of drainages and other connections.  
+The [Columbia Basin Project](https://www.usbr.gov/pn/grandcoulee/cbp/index.html) created dams and interconnected formerly isolated waterways via hundreds of miles of canals and thousands of miles of drainages and other connections.  
 
 ![](https://media.defense.gov/2019/Apr/21/2002468397/-1/-1/0/161118-A-A1408-301.JPG){fig-align="center"}
 
-Although megafauna such as fish species have been negatively impacted (see above), less is known about the impacts on communities of smaller animals. Strecker and Brittain (2017)^[Strecker, A. L., and J. T. Brittain. 2017. Increased habitat connectivity homogenizes freshwater communities: historical and landscape perspectives. J. Appl. Ecol. 54:1343–1352.] explored the diversity of zooplankton as a function of habitat connections.
 
-These authors asked the question: "How does increasing connectivity of waterways alter aquatic zooplankton community?"
+## Zooplankton
 
-We have two datasets 
+Strecker and Brittain [-@Strecker2017-ke] explored the diversity of zooplankton as a function of habitat connections.
+
+> "How does increasing connectivity of waterways alter aquatic zooplankton community?"
+
+
+## Dataset
 
 ```{r}
-SE <- read_csv("../Data/Strecker_env.csv", show_col_types = FALSE)
-SZ <- read_csv("../Data/Strecker_zooplankton.csv", show_col_types = FALSE)
+#| echo: true
+
+Zoo <- read_csv("Data/Strecker_zooplankton.csv", show_col_types = FALSE)
+```
+
+```{r}
+head(Zoo)
+```
+
+## NMDS in R
+
+- `vegan::metaMDS()`
+- `ecodist::nmds()`
+- `MASS::sammon()` and `MASS::isoMDS`
+
+
+## `metaMDS()`
+
+Follows recommendations of Minchin [-@Minchin1987-ep]
+
+- Bray-Curtis distance is the default
+- `try = 20`: Random start positions
+- `autotransform = FALSE`: Can automatically apply transformations
+- `expand = FALSE`: `Zoo` data are already standardized
+- Final PCA rotation to reorient the principal axes
+
+
+## NMDS on zooplankton variables
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+set.seed(4575) # Set the seed
+
+Zoo_k2 <- metaMDS(Zoo[ , -1],
+                  k = 2,
+                  try = 20,
+                  trymax = 50,
+                  distance = "bray",
+                  autotransform = FALSE,
+                  expand = FALSE)
+```
+
+## Plotting 1
+
+Interpretation is *relative ordering* points
+
+- `type = "p"` plots points
+    - `o` are sites
+    - `+` are species
+- Proximity == Similarity
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+plot(Zoo_k2, type = "p")
 ```
 
 
+## Plotting 2
+
+- `type = "t"` labels site and species names
+
 ```{r}
-SZ_Bray <- vegdist(SZ[, -1], method = "bray")
-adonis2(SZ_Bray ~ type, data = SE)
+#| echo: true
+#| output-location: slide
+
+plot(Zoo_k2, type = "t")
+```
+
+
+## Comparing stress
+
+```{r}
+#| echo: true
+#| output: false
+
+set.seed(3742783)
+Zoo_k1 <- metaMDS(Zoo[ , -1],
+                  k = 2,
+                  try = 20,
+                  distance = "bray",
+                  autotransform = FALSE,
+                  expand = FALSE)
+
+Zoo_k3 <- metaMDS(Zoo[ , -1],
+                  k = 2,
+                  try = 20,
+                  distance = "bray",
+                  autotransform = FALSE,
+                  expand = FALSE)
 
 ```
 
+
+## Comparing stress
+
+```{r}
+tibble(k = 1:3,
+       Stress = c(Zoo_k1$stress, Zoo_k2$stress, Zoo_k3$stress)) |> 
+  ggplot(aes(k, Stress)) +
+  geom_point(color = "firebrick4", size = 4) +
+  geom_line(color = "firebrick4", linewidth = 1.5) +
+  scale_x_continuous(breaks = 1:3) +
+  theme_classic()
+```
+
+
+## Evaluating stress [@Clarke1993-oq]
+
+For stress on a 0 to 1 scale:
+
+```{r}
+tribble(
+  ~ `Stress`, ~ "Interpretation",
+  "<0.05",	"Excellent representation with no prospect of misinterpretation",
+  "<0.10", "Good ordination with no real disk of drawing false inferences",
+  "<0.20",	"Can be useful but has potential to mislead. Don't place too much confidence in the details",
+  ">0.20", "Could be dangerous to interpret",
+  ">0.35", "Samples placed essentially at random; little relation to original ranked distances"
+) |> 
+  gt() |> 
+  cols_label(Stress = md("**Stress**"),
+             Interpretation = md("**Interpretation**")) |> 
+  tab_options(table.font.size = 30)
+
+```
+
+
+## Environment data
+
+- Note mixture of categorical and continuous variables
+
+```{r}
+Env <- read_csv("Data/Strecker_env.csv", show_col_types = FALSE) |> 
+  mutate(across(category:type, factor))
+Env
+```
+
+
+## Fit environment data onto an ordination
+
+- Find the maximum correlation between species and environmental data
+
+Check that the rows are in the same order:
+
+```{r}
+#| echo: true
+
+all.equal(Env$site, Zoo$site)
+```
+
+
+## `vegan::envfit()`
+
+```{r}
+#| echo: true
+
+set.seed(347274)
+
+Zoo_Env <- envfit(Zoo_k2, env = Env[, -1], na.rm = TRUE, perm = 999)
+scores(Zoo_Env, "vectors")
+```
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+print(Zoo_Env)
+```
+
+
+## Plotting
+
+1. Plot NMDS ordination
+2. Add `envfit` object
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+plot(Zoo_k2, disp = "sites")
+plot(Zoo_Env)
+```
+
+
+## Surface plot
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+ordisurf(Zoo_k2, Env$surface_temp)
+```
+
+
+## Spider plots
+
+```{r}
+#| echo: true
+
+plot(Zoo_k2, disp = "sites")
+ordispider(Zoo_k2, Env$type, label = TRUE)
+```
 
 
 ## References
