@@ -1,0 +1,370 @@
+---
+title: "Canonical Ordination 1"
+subtitle: "Asymmetrical"
+author:
+  - Elizabeth King
+  - Kevin Middleton
+format:
+  revealjs:
+    theme: [default, custom.scss]
+    standalone: true
+    self-contained: true
+    logo: QMLS_Logo.png
+    slide-number: true
+    show-slide-number: all
+bibliography: Multivariate.bib
+csl: evolution.csl
+---
+
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(cowplot)
+library(vegan)
+
+
+ggplot2::theme_set(theme_cowplot())
+
+```
+
+## Review of unconstrained ordination
+
+- e.g., PCA, FA, NMDS
+- Reveals the structure of data
+- Post-hoc interpretation
+- No obvious next steps
+
+
+## Canonical ordinations
+
+- Two or more datasets are included as part of the ordination process
+- "Constrained"
+    - Joint ordination of multiple matrices
+- "Direct gradient analysis"
+    - Analogous to regression: trying to relate the outcome variable to a predictor variables
+    
+
+## Asymmetrical or Symmetrical?
+
+Asymmetrical
+
+- Response matrix and explanatory matrix
+
+Symmetrical
+
+- Interchangeable matrices with no directionality
+- Like bivariate correlation or Mantel test 
+
+
+## Asymmetrical ordinations
+
+1. Redundancy analysis (RDA)
+2. Canonical correspondence analysis (CCA)
+
+Mixture of multiple regression and eigenanalysis
+
+
+## Redundancy analysis (RDA)
+
+- "...the direct extension of multiple regression to the modelling of multivariate response data" [@Legendre2012-gp]
+- Based on Euclidean distances
+
+
+## RDA Procedure
+
+1. Each response variable is fit to the predictors (a linear model)
+2. Calculate the fitted values and residuals for each response variable
+3. PCAs
+    - Matrix of fitted values, which constrains the PCs to be linear combinations of the predictors
+    - Matrix of residuals, which constrains them to represent "unexplained" variance 
+
+
+## RDA Caveats
+
+- Response variables should be centered individually
+- Predictors can be scaled
+- Usual concerns about correlations among predictors (i.e., multicollinearity)
+    - PCA first?
+- Without explanatory variables, this is just PCA
+- Eigenvalues do not *necessarily* have to decrease with higher PCs.
+
+
+## Doubs River
+
+![](https://www.worldatlas.com/upload/7a/b5/6d/shutterstock-1526708120.jpg){fig-align=center}
+
+
+## Doubs River data
+
+Environmental variables, fish species, and spatial coordinates for 30 sites on the Doubs river [@Verneaux1973-zk].
+
+1. `spe`: abundances of 27 fish species
+2. `fishtraits`: traits for 27 species of fish
+3. `env`: environmental variables related to river hydrology, geomorphology, and chemistry
+4. `latlong`: geographical coordinates (Latitude-Longitude) of the sites
+5. `spa`: geographical coordinates (X-Y)
+
+1 Empty site will be dropped
+
+```{r}
+load("Data/Doubs.RData")
+
+fishtraits <- fishtraits |> 
+  select(-sort, -detritivory, -FrenchName) |> 
+  mutate(omnivory = ifelse(omnivory == 1, "Omni", "Not_Omni"),
+         herbivory = ifelse(herbivory == 1, "Herbi", "Not_Herbi"),
+         invertivory = ifelse(invertivory == 1, "Invert", "Not_Invert"),
+         piscivory = ifelse(piscivory == 1, "Pisci", "Not_Pisci"),
+         carnivory = ifelse(carnivory == 1, "Carni", "Not_Carni"),
+         across(omnivory:carnivory, factor))
+
+spe <- spe[-8, ]
+env <- env[-8, ]
+spa <- spa[-8, ]
+
+# Split off dfs. env2 doesnt have dfs 
+dfs <- env[, 1]
+env2 <- env[, -1]
+
+# Recode the slope variable (slo) ito a factor
+slo2 <- rep("Very_steep", nrow(env))
+slo2[env$slo <= quantile(env$slo)[4]] <- "Steep"
+slo2[env$slo <= quantile(env$slo)[3]] <- "Moderate"
+slo2[env$slo <= quantile(env$slo)[2]] <- "Low"
+slo2 <- factor(slo2, levels = c("Low", "Moderate", "Steep", "Very_steep"))
+
+# Create an env3 data frame with slope as a factor
+env3 <- env2
+env3$slo <- slo2
+
+```
+
+
+## Environmental variables
+
+```{r}
+str(env3)
+```
+
+
+## Two sets of environmental variables
+
+```{r}
+#| echo: true
+
+Topo <- env3[, c(1:3)]
+names(Topo)
+
+Chem <- env3[, c(4:10)]
+names(Chem)
+
+```
+
+
+## Fish abundances
+
+```{r}
+#| echo: true
+
+spe[1:5, 1:10]
+
+rowSums(spe)
+```
+
+
+## Fish abundances
+
+```{r}
+P1 <- spe |> 
+  mutate(rownum = 1:n()) |> 
+  pivot_longer(cols = -rownum) |> 
+  ggplot(aes(x = rownum, y = name, fill = value)) +
+  geom_tile() +
+  labs(x = "Site", y = "Species") +
+  scale_fill_viridis_c(name = "Count") +
+  coord_equal()
+P1
+```
+
+
+## Standardizing species counts
+
+Hellinger standardization: $\sqrt{Observed/Row~Total}$
+
+```{r}
+#| echo: true
+
+spe_std <- decostand(spe, method = "hellinger")
+spe_std[1:5, 1:10]
+```
+
+
+## Standardized fish abundances
+
+```{r}
+P2 <- spe_std |> 
+  mutate(rownum = 1:n()) |> 
+  pivot_longer(cols = -rownum) |> 
+  ggplot(aes(x = rownum, y = name, fill = value)) +
+  geom_tile() +
+  labs(x = "Site", y = "Species") +
+  scale_fill_viridis_c(name = "Count") +
+  coord_equal()
+```
+
+
+## Comparing unscaled and scaled
+
+```{r}
+plot_grid(P1 + theme(legend.position = "none"),
+          P2 + theme(legend.position = "none"))
+```
+
+
+## RDA in `vegan`
+
+- `spe_std` is the standardized matrix of species counts
+- `env3` contains 10 environmental variables
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+spe_RDA <- rda(spe_std ~ ., data = env3,
+               scale = FALSE)
+summary(spe_RDA)
+```
+
+
+## Output components
+
+1. Partitioning of variance
+2. Eigenvalues
+    - `RDA`s: canonical axes
+    - `PC`s: residual PCs
+
+"An important distinction must be made: the canonical (RDAx) eigenvalues measure amounts of variance *explained* by the RDA model, whereas the residual (PCx) eigenvalues measure amounts of variance *represented* by the residual axes, but not explained by the RDA model." [@Borcard2011-ks]
+
+
+## Canonical coefficients
+
+```{r}
+#| echo: true
+
+coef(spe_RDA)
+```
+
+
+## Triplots 1
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+plot(spe_RDA)
+```
+
+
+## Triplots 2
+
+`ggvegan` has `ggplot` functions for plotting vegan objects: 
+
+  - `remotes::install_github("gavinsimpson/ggvegan")`
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+library(ggvegan)
+
+autoplot(spe_RDA)
+```
+
+
+## Decision-making by permutation
+
+```{r}
+#| echo: true
+
+anova(spe_RDA, permutations = how(nperm = 999))
+```
+
+
+## Decision-making by permutation
+
+```{r}
+#| echo: true
+
+anova(spe_RDA, by = "axis", permutations = how(nperm = 999))
+```
+
+
+## Canonical correspondence analysis (CCA)
+
+- "Weighted" RDA that doesn't use Euclidean distance ($\chi^2$ distance)
+- "species are ordered along the canonical axes following their ecological optima" [@Borcard2011-ks]
+    - Interpretation of ecological assemblages is clear(er)
+- Uses raw abundances
+- See Borcard et al. [-@Borcard2011-ks] for discussion
+
+
+## CCA with `vegan::cca()`
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+spe_CCA <- cca(spe ~ ., env3)
+summary(spe_CCA)
+
+```
+
+
+## Canonical coefficients
+
+```{r}
+#| echo: true
+
+coef(spe_CCA)
+```
+
+
+## Triplot
+
+```{r}
+#| echo: true
+
+plot(spe_CCA)
+```
+
+
+## Permutation tests
+
+```{r}
+#| echo: true
+
+anova(spe_CCA, permutations = how(nperm = 999))
+
+```
+
+
+## Permutation tests
+
+```{r}
+#| echo: true
+
+anova(spe_CCA, by = "axis", permutations = how(nperm = 999))
+
+```
+
+
+## References
+
+::: {#refs}
+:::
+

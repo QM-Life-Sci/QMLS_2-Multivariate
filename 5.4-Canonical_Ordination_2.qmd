@@ -1,5 +1,6 @@
 ---
-title: "Hybrid Techniques"
+title: "Canonical Ordination 2"
+subtitle: "Symmetrical"
 author:
   - Elizabeth King
   - Kevin Middleton

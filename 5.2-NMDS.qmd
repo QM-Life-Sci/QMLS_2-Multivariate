@@ -57,7 +57,7 @@ Legendre and Legendre [-@Legendre1998-ca]
 ## General method
 
 1. Define original data points in multidimensional space based on distances between sites
-2. Specify the number of reduced dimensions you want (often 2)
+2. Specify the number of reduced dimensions you want (often 2 or 3)
 3. Construct an initial configuration of the data
 4. Compare distances in this initial configuration against calculated distances
 5. Determine *stress* on data points
@@ -66,8 +66,7 @@ Legendre and Legendre [-@Legendre1998-ca]
 
 ## Stress
 
-- Describes the difference between the distance values from multidimensional space calculated from the original distance matrix and the distance between points in the reduced dimension representation
-    - How far the distances in the new configuration are from being proportional to the original distances
+- Difference between the distance values from multidimensional space calculated from the original distance matrix and the distance between points in the reduced dimension
 - "Pulling on all points a little bit so no single point is completely wrong, all points are a little off compared to distances"
 - Iteratively adjust until the stress value is minimized or reaches a predetermined tolerance.
 
@@ -77,8 +76,8 @@ Legendre and Legendre [-@Legendre1998-ca]
 - Computationally intensive: $\mathcal{O} (n^2)$
 - No guarantee of finding the best solution
     - Risk of finding local minima
-    - "Non-linear optimization is a hard task"
-- Use many random start values and compare final stress as goodness-of-fit
+    - "Non-linear optimization is a hard task" [@Borcard2011-ks]
+- Use many random start values and compare final stress as a metric of goodness-of-fit
 
 
 ## Columbia Basin Project
@@ -144,18 +143,18 @@ Zoo_k2 <- metaMDS(Zoo[ , -1],
 
 ## Plotting 1
 
-Interpretation is *relative ordering* points
+Interpretation is *relative ordering* of points
 
 - `type = "p"` plots points
     - `o` are sites
     - `+` are species
-- Proximity == Similarity
+- Proximity $\approx$ Similarity
 
 ```{r}
 #| echo: true
 #| output-location: slide
 
-plot(Zoo_k2, type = "p")
+plot(Zoo_k2, type = "p", cex = 2)
 ```
 
 
@@ -167,7 +166,7 @@ plot(Zoo_k2, type = "p")
 #| echo: true
 #| output-location: slide
 
-plot(Zoo_k2, type = "t")
+plot(Zoo_k2, type = "t", cex = 1)
 ```
 
 
@@ -179,14 +178,14 @@ plot(Zoo_k2, type = "t")
 
 set.seed(3742783)
 Zoo_k1 <- metaMDS(Zoo[ , -1],
-                  k = 2,
+                  k = 1,
                   try = 20,
                   distance = "bray",
                   autotransform = FALSE,
                   expand = FALSE)
 
 Zoo_k3 <- metaMDS(Zoo[ , -1],
-                  k = 2,
+                  k = 1,
                   try = 20,
                   distance = "bray",
                   autotransform = FALSE,
@@ -281,8 +280,8 @@ print(Zoo_Env)
 #| echo: true
 #| output-location: slide
 
-plot(Zoo_k2, disp = "sites")
-plot(Zoo_Env)
+plot(Zoo_k2, disp = "sites", cex = 2)
+plot(Zoo_Env, cex = 1)
 ```
 
 
@@ -292,7 +291,7 @@ plot(Zoo_Env)
 #| echo: true
 #| output-location: slide
 
-ordisurf(Zoo_k2, Env$surface_temp)
+ordisurf(Zoo_k2, Env$surface_temp, cex = 2)
 ```
 
 
