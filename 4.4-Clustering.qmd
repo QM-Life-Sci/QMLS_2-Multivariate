@@ -283,11 +283,13 @@ Steps:
 
 ## Partitioning Around Medoids
 
-- Robust because it dissimilarity rather than SS
+- Robust because it uses dissimilarity rather than SS
 - Input: raw data or dissimilarity matrix
     - More flexible than k-means
 
 ```{r}
+#| echo: true
+
 library(cluster)
 pam_2 <- pam(SD3[, 2:3], k = 2)
 pam_3 <- pam(SD3[, 2:3], k = 3)
