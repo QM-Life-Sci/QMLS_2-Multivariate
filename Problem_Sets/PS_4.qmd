@@ -1,0 +1,77 @@
+---
+title: "Problem Set 4"
+author:
+  - Your Name Here
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+code-annotations: hover
+---
+
+
+```{r}
+#| label: setup
+#| echo: true
+#| message: false
+#| warning: false
+
+
+# Datasets
+#     Bumpus_sparrows.csv
+
+```
+
+## General Notes
+
+For the final problem set, we are going to give you only a general set of guidelines. Your job is to explore the Bumpus sparrows dataset using the different techniques you learned about in this unit. The dataset is the same that you used for Problem Set 3.
+
+
+## Supervised classification
+
+You learned about three methods for classification using information about groups. We will focus on the groups that define survivorship for males and females. First use the `sex` and `survived` columns to make a new column that codes for four groups: survived males, not survived males, survived females, not survived females. This column should be a factor. Then, select only this column and the other continuous measurements to move ahead. 
+
+Perform the following to classify these data by your new `sex_survived` variable:
+
+1. A linear discriminant analysis
+2. A svm analysis
+3. A CART analysis
+
+In each case, produce a visualization (e.g., correlation plot, posterior predictive plot), calculate a confusion matrix to assess how well the model performs, and calculate the percent correct classification.
+
+
+## LDA
+
+```{r}
+
+```
+
+
+## SVM 
+
+```{r}
+
+```
+
+
+## CART
+
+```{r}
+
+```
+
+
+## Unsupervised classification
+
+Explore how the data clusters without providing information about groupings by performing hierarchical clustering without using your survived_sex variable. Visualize your results.
+
+```{r}
+
+```
+
+
+Consider all of the analyses you have performed. Describe your results and try to interpret them both individually and collectively.
+
+>
