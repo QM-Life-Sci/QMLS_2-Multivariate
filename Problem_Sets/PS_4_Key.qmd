@@ -22,73 +22,130 @@ code-annotations: hover
 library(tidyverse)
 library(vegan)
 library(factoextra)
+library(e1071)
+library(rpart)
+library(rpart.plot)
+library(rsample)
+library(vegan)
+
+set.seed(837261)
+
 
 theme_set(cowplot::theme_cowplot())
 
 # Datasets
-#     Birds.xlsx
-#     Santangelo_familyMean.csv
+#     Bumpus_sparrows.csv
 
 ```
 
 ## General Notes
 
-For the final problem set, we are going to give you only a general set of guidelines. We will use datasets that you have used before in PS 3 to apply techniques from this unit's lectures.
+For the final problem set, we are going to give you only a general set of guidelines. Your job is to explore this dataset using the different techniques you learned about in this unit. The dataset [[FIXME]]   
 
 
-## Linear discriminant analysis
+## Supervised classification
 
-You used PERMANOVA to test for multivariate differences in Bray-Curtis distance of vegetation occurrences across different management types.
+You learned about three methods for classification using information about groups. We will focus on the groups that define survivorship for males and females. First use the sex and survived columns to make a new column that codes for four groups: survived males, not survived males, survived females, not survived females. This column should be a factor. Then, select only this column and the other continuous measurements to move ahead. 
 
+Perform the following to classify these data by your new sex_survived variable: a linear discriminant analysis, a svm analysis, and a CART analysis. In each case, produce a visualization and calculate a confusion matrix to assess how well the model performs.
 
 
 ```{r}
 # FIXME
 
-DuneEnv <- read_csv("../Data/Dune_Environment.csv", show_col_types = FALSE) |> 
-  mutate(Management = factor(Management))
-DuneVeg <- read_csv("../Data/Dune_Vegetation.csv", show_col_types = FALSE) |>
-  decostand(MARGIN = 2, method = "standardize")
+BB <- read_csv("../Data/Bumpus_sparrows.csv")
 
-r <- cor(DuneVeg)
+r <- cor(BB[,5:ncol(BB)])
+
 corrplot::corrplot(r)
 
-Dune_lda <- MASS::lda(DuneEnv$Management ~ ., data = DuneVeg)
+BB$sex_surv <- factor(paste0(BB$sex, "_", BB$survived))
 
-table(Observed = DuneEnv$Management, Predicted = predict(Dune_lda)$class)
+BB <- BB[,5:ncol(BB)]
 
-mean(DuneEnv$Management == predict(Dune_lda)$class)
+Bump_lda <- MASS::lda(sex_surv ~ ., data = BB)
+
+tt <- table(Observed = BB$sex_surv, Predicted = predict(Bump_lda)$class)
+
+sum(diag(tt))/sum(tt)
+
+mean(BB$sex_surv == predict(Bump_lda)$class)
 ```
 
-```
-Warning message:
-In lda.default(x, grouping, ...) : variables are collinear
-```
-
-
-## SVM
 
 ```{r}
-library(e1071)
-Dune <- as.data.frame(DuneVeg) |> 
-  mutate(Management = DuneEnv$Management) |> 
-  relocate(Management)
 
-SVM_fit <- svm(Dune$Management ~ as.matrix(Dune[, -1]), 
+SVM_fit <- svm(BB$sex_surv ~ as.matrix(BB[, -ncol(BB)]), 
                scale = FALSE,
                type = "C-classification", 
                kernel = "radial",
                cost = 2)
 SVM_fit
 
-table(DuneEnv$Management, predict(SVM_fit))
+tt <- table(BB$sex_surv, predict(SVM_fit))
+tt
+
+sum(diag(tt))/sum(tt)
 ```
 
 ## CART
 
-Bumpus paper has a kind of CART model
+```{r}
 
-## Clustering
+split <- initial_split(BB, strata = sex_surv, prop = 0.75) 
+
+Training_set <- training(split) 
+Test_set <- testing(split)
+
+tree <- rpart(sex_surv ~ .,
+              data = Training_set,
+              control = rpart.control(cp = 0.01))
+printcp(tree)
+
+best <- tree$cptable[which.min(tree$cptable[ , "xerror"]), "CP"]
+pruned_tree <- prune(tree, cp = best)
+
+prp(pruned_tree,
+    faclen = 0,
+    extra = 1,
+    roundint = FALSE,
+    digits = 3)
+
+rpart.plot(pruned_tree)
+
+pred.tree <- predict(pruned_tree, Test_set, type = "class")
+table(pred.tree, Test_set$sex_surv)
+mean(pred.tree == Test_set$sex_surv) * 100
+
+```
+
+## Unsupervised classification
+
+Explore how the data clusters without providing information about groupings by performing hierarchical clustering without using your survived_sex variable. Visualize your results.
+
+```{r}
+
+d <- vegdist(BB[, 1:(ncol(BB)-1)], method = "euclidean")
+hc <- hclust(d, method = "ward.D2")
+
+P2 <- ggdendro::ggdendrogram(hc)
+
+P2
+
+
+tibble(k = nrow(BB):2, Height = hc$height) |> 
+  ggplot(aes(k, Height, label = k)) +
+  geom_step() +
+  ggrepel::geom_label_repel(color = "firebrick4") +
+  labs(x = "Number of Clusters", y = "Node Height")
+
+```
+
+
+Consider all of the analyses you have performed. Intepret and describe your results.
+
+>
+
 
 
 
