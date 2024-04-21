@@ -60,6 +60,11 @@ table(Observed = DuneEnv$Management, Predicted = predict(Dune_lda)$class)
 mean(DuneEnv$Management == predict(Dune_lda)$class)
 ```
 
+```
+Warning message:
+In lda.default(x, grouping, ...) : variables are collinear
+```
+
 
 ## SVM
 
@@ -68,20 +73,15 @@ library(e1071)
 Dune <- as.data.frame(DuneVeg) |> 
   mutate(Management = DuneEnv$Management) |> 
   relocate(Management)
-SVM_fit <- svm(Management ~ as.matrix(Dune[, -1]), 
-               data = Dune, 
-               scale = TRUE,
+
+SVM_fit <- svm(Dune$Management ~ as.matrix(Dune[, -1]), 
+               scale = FALSE,
                type = "C-classification", 
                kernel = "radial",
                cost = 2)
 SVM_fit
 
 table(DuneEnv$Management, predict(SVM_fit))
-
-plot(SVM_fit,
-     data = Dune,
-     formula = Planlanc ~ Agrostol)
-
 ```
 
 ## CART
