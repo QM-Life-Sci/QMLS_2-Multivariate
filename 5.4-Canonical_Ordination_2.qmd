@@ -25,6 +25,7 @@ csl: evolution.csl
 
 library(tidyverse)
 library(cowplot)
+library(vegan)
 
 ggplot2::theme_set(theme_cowplot())
 
@@ -52,6 +53,25 @@ ggplot2::theme_set(theme_cowplot())
 - Data requirements
     - Multivariate normality
     - No categorical variables
+
+
+## Wheat
+
+> "Two identical 13.6-ton (500 bu.) parcels of Manitoba Northern wheat, variety Selkirk, were stored 183 cm deep in 2 similar and adjoining 305 cm X 333 cm wooden bins in a granary in Winnipeg during 1959-67. Two hundred-gram samples were collected monthly from fixed sampling sites in the bins." Sinha et al. [-@Sinha1969-mp]
+
+Measured biotic (insects, fungi, mites) and abiotic (location, depth, temperature) factors.
+
+- How do these correlate?
+
+
+## Wheat
+
+![](https://i.imgur.com/jJd74yv.png"){fig-width=50% fig-align=center}
+
+
+## Doubs River
+
+![](https://www.worldatlas.com/upload/7a/b5/6d/shutterstock-1526708120.jpg){fig-align=center}
 
 
 ## Doubs River environmental data
@@ -85,16 +105,99 @@ names(Chem)
 #| echo: true
 #| output-location: slide
 
-Topo |> 
-  pivot_longer(cols = everything()) |> 
-  ggplot(aes(value)) +
-  geom_density() +
-  facet_grid(name ~ ., scales = "free")
+Topo_plots <- map(.x = names(Topo),
+    .f = function(.x) {
+      ggplot(Topo, aes(!!ensym(.x))) +
+        geom_density(color = "firebrick4", linewidth = 1)
+    })
+
+plot_grid(plotlist = Topo_plots, ncol = 3)
 ```
 
 
-## References
+## Transformations
 
-::: {#refs}
-:::
+```{r}
+#| echo: true
+
+Topo <- Topo |> 
+  mutate(dis = sqrt(dis),
+         ele = log(ele),
+         slo = log(slo))
+```
+
+```{r}
+Topo_plots <- map(.x = names(Topo),
+    .f = function(.x) {
+      ggplot(Topo, aes(!!ensym(.x))) +
+        geom_density(color = "firebrick4", linewidth = 1)
+    })
+
+plot_grid(plotlist = Topo_plots, ncol = 3)
+```
+
+
+## Water Chemistry Variables
+
+```{r}
+Chem_plots <- map(.x = names(Chem),
+    .f = function(.x) {
+      ggplot(Chem, aes(!!ensym(.x))) +
+        geom_density(color = "firebrick4", linewidth = 1)
+    })
+
+plot_grid(plotlist = Chem_plots, ncol = 3)
+```
+
+
+## Transformed
+
+```{r}
+Chem <- Chem |> 
+  mutate(pho = log(pho),
+         nit = sqrt(nit),
+         amm = log1p(amm),
+         bod = log(bod))
+
+Chem_plots <- map(.x = names(Chem),
+    .f = function(.x) {
+      ggplot(Chem, aes(!!ensym(.x))) +
+        geom_density(color = "firebrick4", linewidth = 1)
+    })
+
+plot_grid(plotlist = Chem_plots, ncol = 3)
+```
+
+
+## Canonical Correlation in R
+
+- `vegan::CCorA()`
+- Standardizing X and Y
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+Chem_Topo_CCorA <- CCorA(Chem, Topo, 
+                         stand.Y = TRUE, 
+                         stand.X = TRUE, 
+                         permutations = how(nperm = 999))
+
+Chem_Topo_CCorA
+
+```
+
+
+## Interpreting the output
+
+- Pillai's Trace: Sum of squared canonical correlations
+- Significance by randomization
+- R^2^: Are the canonical axes likely to account for substantial variation?
+
+
+## Biplots
+
+```{r}
+biplot(Chem_Topo_CCorA, plot.type = "biplot")
+```
 
