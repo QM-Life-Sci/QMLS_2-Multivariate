@@ -31,11 +31,64 @@ theme_set(cowplot::theme_cowplot())
 
 ```
 
-## Notes
+## General Notes
+
+For the final problem set, we are going to give you only a general set of guidelines. We will use datasets that you have used before in PS 3 to apply techniques from this unit's lectures.
+
+
+## Linear discriminant analysis
+
+You used PERMANOVA to test for multivariate differences in Bray-Curtis distance of vegetation occurrences across different management types.
+
+
+
+```{r}
+# FIXME
+
+DuneEnv <- read_csv("../Data/Dune_Environment.csv", show_col_types = FALSE) |> 
+  mutate(Management = factor(Management))
+DuneVeg <- read_csv("../Data/Dune_Vegetation.csv", show_col_types = FALSE) |>
+  decostand(MARGIN = 2, method = "standardize")
+
+r <- cor(DuneVeg)
+corrplot::corrplot(r)
+
+Dune_lda <- MASS::lda(DuneEnv$Management ~ ., data = DuneVeg)
+
+table(Observed = DuneEnv$Management, Predicted = predict(Dune_lda)$class)
+
+mean(DuneEnv$Management == predict(Dune_lda)$class)
+```
+
+
+## SVM
+
+```{r}
+library(e1071)
+Dune <- as.data.frame(DuneVeg) |> 
+  mutate(Management = DuneEnv$Management) |> 
+  relocate(Management)
+SVM_fit <- svm(Management ~ as.matrix(Dune[, -1]), 
+               data = Dune, 
+               scale = TRUE,
+               type = "C-classification", 
+               kernel = "radial",
+               cost = 2)
+SVM_fit
+
+table(DuneEnv$Management, predict(SVM_fit))
+
+plot(SVM_fit,
+     data = Dune,
+     formula = Planlanc ~ Agrostol)
+
+```
+
+## CART
 
 Bumpus paper has a kind of CART model
 
-## Darlingtonia plants vs. soil
+## Clustering
 
 
 

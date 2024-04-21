@@ -30,9 +30,67 @@ ggplot2::theme_set(theme_cowplot())
 
 ```
 
-## Canonical ordination
+## Symmetrical ordinations
 
-- Constrained
+- All matrices have the same role
+- No outcome vs. predictor relationship
+- No hypotheses of causation
+- $M_1 \sim M_2 == M_2 \sim M_1$
+
+
+## Symmetrical ordinations
+
+1. Canonical Correlation Analysis (CCorA)
+2. Co-inertia Analysis (CoIA)
+3. Multiple factor analysis (MFA)
+
+
+## Canonical Correlation Analysis
+
+- Two sets of data
+- Align canonical axes to maximize correlations
+- Data requirements
+    - Multivariate normality
+    - No categorical variables
+
+
+## Doubs River environmental data
+
+```{r}
+load("Data/Doubs.RData")
+
+spe <- spe[-8, ]
+env <- env[-8, ]
+spa <- spa[-8, ]
+
+# Split off dfs. env2 doesnt have dfs 
+env2 <- env[, -1]
+```
+
+```{r}
+#| echo: true
+
+Topo <- env2[, c(1:3)]
+names(Topo)
+
+Chem <- env2[, c(4:10)]
+names(Chem)
+
+```
+
+
+## Density plots
+
+```{r}
+#| echo: true
+#| output-location: slide
+
+Topo |> 
+  pivot_longer(cols = everything()) |> 
+  ggplot(aes(value)) +
+  geom_density() +
+  facet_grid(name ~ ., scales = "free")
+```
 
 
 ## References

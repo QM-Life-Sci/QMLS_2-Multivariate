@@ -114,15 +114,6 @@ Environmental variables, fish species, and spatial coordinates for 30 sites on t
 ```{r}
 load("Data/Doubs.RData")
 
-fishtraits <- fishtraits |> 
-  select(-sort, -detritivory, -FrenchName) |> 
-  mutate(omnivory = ifelse(omnivory == 1, "Omni", "Not_Omni"),
-         herbivory = ifelse(herbivory == 1, "Herbi", "Not_Herbi"),
-         invertivory = ifelse(invertivory == 1, "Invert", "Not_Invert"),
-         piscivory = ifelse(piscivory == 1, "Pisci", "Not_Pisci"),
-         carnivory = ifelse(carnivory == 1, "Carni", "Not_Carni"),
-         across(omnivory:carnivory, factor))
-
 spe <- spe[-8, ]
 env <- env[-8, ]
 spa <- spa[-8, ]
