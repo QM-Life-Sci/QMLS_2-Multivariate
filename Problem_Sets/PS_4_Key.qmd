@@ -167,6 +167,6 @@ tibble(k = nrow(BB):2, Height = hc$height) |>
 ```
 
 
-Consider all of the analyses you have performed. Intepret and describe your results.
+Consider all of the analyses you have performed. Describe your results and try to interpret them both individually and collectively.
 
 >
