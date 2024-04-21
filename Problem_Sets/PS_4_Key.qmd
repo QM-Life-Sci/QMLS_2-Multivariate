@@ -40,66 +40,93 @@ theme_set(cowplot::theme_cowplot())
 
 ## General Notes
 
-For the final problem set, we are going to give you only a general set of guidelines. Your job is to explore this dataset using the different techniques you learned about in this unit. The dataset [[FIXME]]   
+For the final problem set, we are going to give you only a general set of guidelines. Your job is to explore the Bumpus sparrows dataset using the different techniques you learned about in this unit. The dataset is the same that you used for Problem Set 3.
 
 
 ## Supervised classification
 
-You learned about three methods for classification using information about groups. We will focus on the groups that define survivorship for males and females. First use the sex and survived columns to make a new column that codes for four groups: survived males, not survived males, survived females, not survived females. This column should be a factor. Then, select only this column and the other continuous measurements to move ahead. 
+You learned about three methods for classification using information about groups. We will focus on the groups that define survivorship for males and females. First use the `sex` and `survived` columns to make a new column that codes for four groups: survived males, not survived males, survived females, not survived females. This column should be a factor. Then, select only this column and the other continuous measurements to move ahead. 
 
-Perform the following to classify these data by your new sex_survived variable: a linear discriminant analysis, a svm analysis, and a CART analysis. In each case, produce a visualization and calculate a confusion matrix to assess how well the model performs.
+Perform the following to classify these data by your new `sex_survived` variable:
 
+1. A linear discriminant analysis
+2. A svm analysis
+3. A CART analysis
+
+In each case, produce a visualization (e.g., correlation plot, posterior predictive plot), calculate a confusion matrix to assess how well the model performs, and calculate the percent correct classification.
+
+
+## LDA
 
 ```{r}
 # FIXME
 
-BB <- read_csv("../Data/Bumpus_sparrows.csv")
+BB <- read_csv("../Data/Bumpus_sparrows.csv", show_col_types = FALSE) |>
+  dplyr::select(sex, survived:SKL) |> 
+  mutate(sex_survived = factor(paste(sex, survived, sep = "_"))) |> 
+  dplyr::select(-sex, -survived) |> 
+  relocate(sex_survived)
 
-r <- cor(BB[,5:ncol(BB)])
-
+r <- cor(BB[ , -1])
 corrplot::corrplot(r)
 
-BB$sex_surv <- factor(paste0(BB$sex, "_", BB$survived))
+Bump_lda <- MASS::lda(sex_survived ~ ., data = BB)
 
-BB <- BB[,5:ncol(BB)]
+tt <- table(Observed = BB$sex_survived,
+            Predicted = predict(Bump_lda)$class)
 
-Bump_lda <- MASS::lda(sex_surv ~ ., data = BB)
-
-tt <- table(Observed = BB$sex_surv, Predicted = predict(Bump_lda)$class)
+print(tt)
 
 sum(diag(tt))/sum(tt)
 
-mean(BB$sex_surv == predict(Bump_lda)$class)
+mean(BB$sex_survived == predict(Bump_lda)$class)
 ```
 
 
-```{r}
+## SVM 
 
-SVM_fit <- svm(BB$sex_surv ~ as.matrix(BB[, -ncol(BB)]), 
+```{r}
+# FIXME
+
+SVM_fit <- svm(sex_survived ~ .,
+               data = BB,
                scale = FALSE,
                type = "C-classification", 
                kernel = "radial",
                cost = 2)
-SVM_fit
-
-tt <- table(BB$sex_surv, predict(SVM_fit))
-tt
+(tt <- table(BB$sex_survived, predict(SVM_fit)))
 
 sum(diag(tt))/sum(tt)
+
+plot(SVM_fit,
+     data = BB,
+     formula = AE ~ TL,
+     grid = 200,
+     slice = list(WT = mean(BB$WT),
+                  FL = mean(BB$FL),
+                  BHL = mean(BB$BHL),
+                  HL = mean(BB$HL),
+                  TTL = mean(BB$TTL),
+                  SW = mean(BB$SW),
+                  SKL = mean(BB$SKL)))
+
 ```
+
 
 ## CART
 
 ```{r}
+# FIXME
 
-split <- initial_split(BB, strata = sex_surv, prop = 0.75) 
+set.seed(23847)
+split <- initial_split(BB, strata = sex_survived, prop = 0.75) 
 
 Training_set <- training(split) 
 Test_set <- testing(split)
 
-tree <- rpart(sex_surv ~ .,
+tree <- rpart(sex_survived ~ .,
               data = Training_set,
-              control = rpart.control(cp = 0.01))
+              control = rpart.control(cp = 0.1))
 printcp(tree)
 
 best <- tree$cptable[which.min(tree$cptable[ , "xerror"]), "CP"]
@@ -114,10 +141,11 @@ prp(pruned_tree,
 rpart.plot(pruned_tree)
 
 pred.tree <- predict(pruned_tree, Test_set, type = "class")
-table(pred.tree, Test_set$sex_surv)
-mean(pred.tree == Test_set$sex_surv) * 100
+table(pred.tree, Test_set$sex_survived)
+mean(pred.tree == Test_set$sex_survived) * 100
 
 ```
+
 
 ## Unsupervised classification
 
@@ -125,13 +153,10 @@ Explore how the data clusters without providing information about groupings by p
 
 ```{r}
 
-d <- vegdist(BB[, 1:(ncol(BB)-1)], method = "euclidean")
+d <- vegdist(BB[, -1], method = "euclidean")
 hc <- hclust(d, method = "ward.D2")
 
-P2 <- ggdendro::ggdendrogram(hc)
-
-P2
-
+ggdendro::ggdendrogram(hc)
 
 tibble(k = nrow(BB):2, Height = hc$height) |> 
   ggplot(aes(k, Height, label = k)) +
@@ -145,7 +170,3 @@ tibble(k = nrow(BB):2, Height = hc$height) |>
 Consider all of the analyses you have performed. Intepret and describe your results.
 
 >
-
-
-
-
