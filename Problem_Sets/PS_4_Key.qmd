@@ -30,7 +30,6 @@ library(vegan)
 
 set.seed(837261)
 
-
 theme_set(cowplot::theme_cowplot())
 
 # Datasets
@@ -49,9 +48,12 @@ You learned about three methods for classification using information about group
 
 Perform the following to classify these data by your new `sex_survived` variable:
 
-1. A linear discriminant analysis
-2. A svm analysis
-3. A CART analysis
+1. Linear discriminant analysis
+2. SVM analysis
+3. CART analysis
+4. Unsupervised hierarchical classification
+
+There is not enough data to do a train/test split. So just use all the data for training, and compare the predicted classes to the observed.
 
 In each case, produce a visualization (e.g., correlation plot, posterior predictive plot), calculate a confusion matrix to assess how well the model performs, and calculate the percent correct classification.
 
@@ -118,15 +120,11 @@ plot(SVM_fit,
 ```{r}
 # FIXME
 
-set.seed(23847)
-split <- initial_split(BB, strata = sex_survived, prop = 0.75) 
-
-Training_set <- training(split) 
-Test_set <- testing(split)
+set.seed(9879)
 
 tree <- rpart(sex_survived ~ .,
-              data = Training_set,
-              control = rpart.control(cp = 0.1))
+              data = BB,
+              control = rpart.control(cp = 0.01))
 printcp(tree)
 
 best <- tree$cptable[which.min(tree$cptable[ , "xerror"]), "CP"]
@@ -140,16 +138,14 @@ prp(pruned_tree,
 
 rpart.plot(pruned_tree)
 
-pred.tree <- predict(pruned_tree, Test_set, type = "class")
-table(pred.tree, Test_set$sex_survived)
-mean(pred.tree == Test_set$sex_survived) * 100
-
+table(predict(pruned_tree, type = "class"), BB$sex_survived)
+mean(predict(pruned_tree, type = "class") == BB$sex_survived)
 ```
 
 
-## Unsupervised classification
+## Unsupervised hierarchical classification
 
-Explore how the data clusters without providing information about groupings by performing hierarchical clustering without using your survived_sex variable. Visualize your results.
+Explore how the data clusters without providing information about groupings by performing hierarchical clustering without using your `survived_sex` variable. Visualize your results.
 
 ```{r}
 
@@ -169,4 +165,5 @@ tibble(k = nrow(BB):2, Height = hc$height) |>
 
 Consider all of the analyses you have performed. Describe your results and try to interpret them both individually and collectively.
 
->
+> You may have found that interpretation of multivariate analyses like these is challenging, even when the answer might be somewhat logical. The correlation plot shows that most of the morphological measurements are positively correlated with each other (we also saw this in the PCA of the same data in PS 3). So eigen-like analyses should be pretty good at finding shared variance among these varaibles. LDA works well for single "outcome" variables, so we have to combine two different variables into one. LDA does pretty poorly overall, with only ~68% correct (a little over 2/3). It's challenging to interpret the "double classification", because it's not possible to disentangle the classfier poorly judging male from female or survived from didn't survive. SVM, which is a non-linear classifier does really well (90% correct). If you were able to make a plot of the SVM (see code above), you will find that there are some odd patterns of classification. The LDA is easier to interpret (linear equations) but the SVM does better. The CART is preobably the easiest to interpret (depending on the model that was chosen) because it only uses two variables: AE and HL. It seems to (mostly) split male and female sparrows first on AE < 241. It still doesn't do very well (only 64%). Hierarchical clustering recovers mist likely 3 partitions (or maybe 5). We would have to dig futher into the results to see what sparrows are grouping together. Note that this analysis doesn't include any information about the sex/survival variable.
+
