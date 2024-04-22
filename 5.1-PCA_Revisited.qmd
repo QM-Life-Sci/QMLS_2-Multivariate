@@ -33,8 +33,8 @@ library(cowplot)
 
 1. PCA revisited, Factor Analysis
 2. Nonmetric Multidimensional Scaling (NMDS)
-3. Asymmetrical Ordinations
-4. Symmetrical Ordinations
+3. Asymmetrical Canonical Ordinations
+4. Symmetrical Canonical Ordinations
 
 
 ## Resources specific to this unit
