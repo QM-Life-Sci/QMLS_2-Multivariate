@@ -230,7 +230,8 @@ tribble(
 
 ## Environment data
 
-- Note mixture of categorical and continuous variables
+- Mixture of categorical and continuous variables
+- NAs present
 
 ```{r}
 Env <- read_csv("Data/Strecker_env.csv", show_col_types = FALSE) |> 

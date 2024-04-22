@@ -33,8 +33,8 @@ library(cowplot)
 
 1. PCA revisited, Factor Analysis
 2. Nonmetric Multidimensional Scaling (NMDS)
-3. Canonical Correspondence and Canonical Correlation
-4. Mixtures: Hierarchical Clustering on Principal Components (HCPC)
+3. Asymmetrical Ordinations
+4. Symmetrical Ordinations
 
 
 ## Resources specific to this unit
@@ -61,8 +61,8 @@ library(cowplot)
 
 *Canonical* (Constrained)
 
-- Canonical Correspondence 
-- Canonical Correlation
+- Asymmetrical
+- Symmetrical
 
 
 ## PCA and Factor Analysis
@@ -133,8 +133,16 @@ corrplot(cor(PP[, 2:8]), type = "lower")
 
 ```{r}
 #| echo: true
+
 pca_env <- prcomp(PP[, 2:8], center = TRUE, scale. = TRUE)
 pca_env
+```
+
+## PCA
+
+```{r}
+#| echo: true
+
 summary(pca_env)
 ```
 
@@ -163,6 +171,8 @@ cont_tr_s <- apply(PP[, 2:8], MARGIN = 2, FUN = scale) |>
 FA <- lavaan::efa(cont_tr_s, nfactors = 3)
 ```
 
+
+## Factor Analysis
 
 ```{r}
 #| echo: true

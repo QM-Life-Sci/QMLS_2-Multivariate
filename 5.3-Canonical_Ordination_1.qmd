@@ -37,7 +37,7 @@ ggplot2::theme_set(theme_cowplot())
 - e.g., PCA, FA, NMDS
 - Reveals the structure of data
 - Post-hoc interpretation
-- No obvious next steps
+- Often no obvious next steps
 
 
 ## Canonical ordinations
@@ -58,7 +58,7 @@ Asymmetrical
 Symmetrical
 
 - Interchangeable matrices with no directionality
-- Like bivariate correlation or Mantel test 
+- Like Pearson's correlation (*r*) or Mantel test 
 
 
 ## Asymmetrical ordinations
@@ -101,15 +101,13 @@ Mixture of multiple regression and eigenanalysis
 
 ## Doubs River data
 
-Environmental variables, fish species, and spatial coordinates for 30 sites on the Doubs river [@Verneaux1973-zk].
+Environmental variables, fish species, and spatial coordinates for 29 sites on the Doubs river [@Verneaux1973-zk].
 
 1. `spe`: abundances of 27 fish species
 2. `fishtraits`: traits for 27 species of fish
 3. `env`: environmental variables related to river hydrology, geomorphology, and chemistry
 4. `latlong`: geographical coordinates (Latitude-Longitude) of the sites
 5. `spa`: geographical coordinates (X-Y)
-
-1 Empty site will be dropped
 
 ```{r}
 load("Data/Doubs.RData")

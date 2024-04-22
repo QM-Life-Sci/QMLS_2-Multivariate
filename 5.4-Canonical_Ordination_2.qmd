@@ -201,3 +201,9 @@ Chem_Topo_CCorA
 biplot(Chem_Topo_CCorA, plot.type = "biplot")
 ```
 
+
+## References
+
+::: {#refs}
+:::
+
