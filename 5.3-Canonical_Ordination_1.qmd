@@ -204,6 +204,7 @@ P2 <- spe_std |>
   labs(x = "Site", y = "Species") +
   scale_fill_viridis_c(name = "Count") +
   coord_equal()
+P2
 ```
 
 
