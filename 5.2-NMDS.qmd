@@ -8,7 +8,6 @@ format:
     theme: [default, custom.scss]
     standalone: true
     self-contained: true
-    logo: QMLS_Logo.png
     slide-number: true
     show-slide-number: all
 bibliography: Multivariate.bib
@@ -51,7 +50,7 @@ Legendre and Legendre [-@Legendre1998-ca]
 - Not an eigenanalysis technique
 - Does not maximize the variability associated with individual axes of the ordination
     - Rotations are arbitrary, not orthogonal
-    - Plots and be inverted, rotated, etc. for interpretation 
+    - Plots can be inverted, rotated, etc. for interpretation 
 
 
 ## General method
@@ -185,7 +184,7 @@ Zoo_k1 <- metaMDS(Zoo[ , -1],
                   expand = FALSE)
 
 Zoo_k3 <- metaMDS(Zoo[ , -1],
-                  k = 1,
+                  k = 3,
                   try = 20,
                   distance = "bray",
                   autotransform = FALSE,
