@@ -78,7 +78,7 @@ summary(fm)
 Use the following equation from lecture to use matrix algebra to solve for the coefficients:
 
 $$B = \left(X^T ~ X \right)^{-1}~\left( X^T~y \right)$$
-where $X$ is the matrix of predictor variables and $y$ is the matrix containing the reponse variable. Use `model.matrix()` to obtain $X$. The $X$ matrix should have a column of 1's for the intercept followed by a column containing each predictor. You may want to compute each component of the equation separately first, rather than trying to do the equation in one line. Compare your result to the coefficients in the model summary you obtained above.
+where $X$ is the matrix of predictor variables and $y$ is the matrix containing the response variable. Use `model.matrix()` to obtain $X$. The $X$ matrix should have a column of 1's for the intercept followed by a column containing each predictor. You may want to compute each component of the equation separately first, rather than trying to do the equation in one line. Compare your result to the coefficients in the model summary you obtained above.
 
 ```{r}
 #FIXME
