@@ -51,7 +51,7 @@ Use the `vegdist()` function from the `vegan` package to calculate the Euclidean
 
 ```
 
-These are large matrices (20 x 20), so visualizing can be challenging. In the chunk below, we have given you a function to plot a distance matrix as a heatmap where the cells are color filled by the value in the distance matrix. The two argument to the function are the distance matrix (`DM`) and number of rows in the data (`n`). Note that `n` is the number of rows in the data (e.g., 20 for these data), not the size of the distance matrix. The function returns a `ggplot` object, so you can "add" to the plot, using the usual `+` syntax.
+These are large matrices (20 x 20), so visualizing can be challenging. In the chunk below, we have given you a function to plot a distance matrix as a heatmap where the cells are color filled by the value in the distance matrix. The two arguments to the function are the distance matrix (`DM`) and number of rows in the data (`n`). Note that `n` is the number of rows in the data (e.g., 20 for these data), not the size of the distance matrix. The function returns a `ggplot` object, so you can "add" to the plot, using the usual `+` syntax.
 
 ```{r}
 correlation_plot <- function(DM, n) {
