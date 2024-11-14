@@ -223,7 +223,7 @@ corrplot::corrplot(r)
 
 What do you observe in the correlations?
 
-> All of the variables are positively correlated with one another and failrly highly so.
+> All of the variables are positively correlated with one another and fairly highly so.
 
 To explore these correlations, carry out a PCA on the morphological measures.
 
