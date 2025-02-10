@@ -1,13 +1,13 @@
 # Lecture slides
+library(quarto)
 
 qmds <- list.files(pattern = "^[1-5].[1-5].*qmd$",
                    path = ".",
                    full.names = TRUE)
 
 for (qq in qmds) {
-  message("Processing ", qq)
-  syscall <- paste0("quarto render ", qq, " --to revealjs")
-  system(syscall)
+  quarto_render(input = qq,
+                metadata = list("self-contained" = "true"))
 }
 
 
@@ -18,7 +18,6 @@ qmds <- list.files(pattern = "^PS_[1-4][_Key]*.qmd$",
                    full.names = TRUE)
 
 for (qq in qmds) {
-  message("Processing ", qq)
-  syscall <- paste0("quarto render ", qq, " --to html")
-  system(syscall)
+  quarto_render(input = qq,
+                metadata = list("self-contained" = "true"))
 }
