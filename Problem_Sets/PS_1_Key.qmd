@@ -36,7 +36,7 @@ As a model system, fruit flies (*Drosophila melanogaster*) are tractable for rea
  
 A common method for measuring size and shape of biological structures, including wings, is by extracting landmark coordinates in 2- or 3-dimensional space. The directory `wing_landmarks` contains 183 files with data on 12 landmark coordinates. Because wings are (basically) flat, these data are taken in two dimensions (`X` and `Y`).
 
-The image below shows a wing with its landmarks and a few lines connecting them. The ordering of the landmarks is not important for our exercises, although when collecting these data it is critical to make sure that all the landmark points are in the same order. In this case, the purple point in #1, and the dark red point #12. 
+The image below shows a wing with its landmarks and a few lines connecting them. The ordering of the landmarks is not important for our exercises, although when collecting these data it is critical to make sure that all the landmark points are in the same order. In this case, the purple point is #1, and the dark red point #12. 
 
 ![](https://www.github.com/QM-Life-Sci/QMLS_2-Multivariate/raw/main/Images/fly_wing.png){fig-align="center"}
 
