@@ -1,0 +1,63 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "cSpell.words": [
+      "ANOVA",
+      "ANOVAs",
+      "autotransform",
+      "Bakker",
+      "Borcard",
+      "Brittain",
+      "californica",
+      "cbind",
+      "cowplot",
+      "Darlingtonia",
+      "ecodist",
+      "eigenanalysis",
+      "envfit",
+      "Farnsworth",
+      "ggscatmat",
+      "ggtitle",
+      "lmod",
+      "MANOVA",
+      "mathcal",
+      "Minchin",
+      "mvtnorm",
+      "ncol",
+      "NMDS",
+      "Nonmetric",
+      "ordispider",
+      "ordisurf",
+      "PERMANOVA",
+      "Pillai",
+      "plotly",
+      "Pmod",
+      "QMLS",
+      "rbind",
+      "revealjs",
+      "rmvnorm",
+      "rnorm",
+      "sammon",
+      "showlegend",
+      "steelblue",
+      "Strecker",
+      "Tabachnick",
+      "tibble",
+      "Topo",
+      "tribble",
+      "trymax",
+      "Wilk's",
+      "xaxis",
+      "xend",
+      "xlab",
+      "yaxis",
+      "yend",
+      "ylab",
+      "zaxis"
+    ]
+  }
+}
