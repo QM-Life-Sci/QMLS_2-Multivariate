@@ -44,7 +44,7 @@ PERmutational Multivariate Analysis of Variance
 
 - Components of the ANOVA table
 - Connection between sums of squares and variances
-- Equivalence between differences and distances 
+- Equivalence between differences and distances
 
 
 ## Does bright light treatment alleviate jet lag symptoms?
@@ -72,15 +72,18 @@ PERmutational Multivariate Analysis of Variance
 ## Jet lag data
 
 ```{r}
-JL <- read_csv("Data/JetLag.csv", show_col_types = FALSE) |> 
+JL <- read_csv("Data/JetLag.csv", show_col_types = FALSE) |>
   mutate(Treatment = factor(Treatment, labels = c("Control", "Eyes", "Knee")))
 ```
 
 ```{r}
 #| fig-align: center
 p1 <- ggplot(JL, aes(x = Treatment, y = Shift)) +
-  geom_point(position = position_jitter(width = 0.1, seed = 43577),
-             size = 5, color = "steelblue") +
+  geom_point(
+    position = position_jitter(width = 0.1, seed = 43577),
+    size = 5,
+    color = "steelblue"
+  ) +
   xlab("Light Treatment") +
   ylab("Shift in Circadian Rhythm (h)") +
   theme(axis.title = element_text(face = "bold"))
@@ -93,14 +96,14 @@ anova(lm(Shift ~ Treatment, data = JL))
 
 
 
-## Where do Sum of Squares and Mean Squares come from? 
+## Where do Sum of Squares and Mean Squares come from?
 
 ![](https://i.imgur.com/dNF4ph0.png){fig-align="center"}
 
 $$F = \frac{\mbox{Between Group Variation}}{\mbox{Within Group Variation}} = \frac{\mbox{MS}_{group}}{\mbox{MS}_{error}}$$
 
 
-## SS are the same as distances to centroids 
+## SS are the same as distances to centroids
 
 ![](https://i.imgur.com/dNF4ph0.png){fig-align="center"}
 
@@ -117,41 +120,42 @@ $$F = \frac{\mbox{Between Group Variation}}{\mbox{Within Group Variation}} = \fr
 ```{r}
 set.seed(140592)
 nn <- 25
-sigma <- rbind(c(1.00, 0.75, 0.75),
-               c(0.75, 1.00, 0.75),
-               c(0.75, 0.75, 1.00))
+sigma <- rbind(c(1.00, 0.75, 0.75), c(0.75, 1.00, 0.75), c(0.75, 0.75, 1.00))
 
 MM <- rmvnorm(n = nn * 2, mean = c(0, 1, 2), sigma = sigma)
 ss <- 2
-MM.dat <- tibble(y1 = MM[ , 1] + c(rnorm(nn, ss), rnorm(nn, 1, ss)),
-                 y2 = MM[ , 2] - c(rnorm(nn, ss), rnorm(nn, 1, ss)),
-                 y3 = MM[ , 3] + c(rnorm(nn, ss), rnorm(nn, 0.5, ss)),
-                 xx = rep(c("A", "B"), each = nn)
+MM.dat <- tibble(
+  y1 = MM[, 1] + c(rnorm(nn, ss), rnorm(nn, 1, ss)),
+  y2 = MM[, 2] - c(rnorm(nn, ss), rnorm(nn, 1, ss)),
+  y3 = MM[, 3] + c(rnorm(nn, ss), rnorm(nn, 0.5, ss)),
+  xx = rep(c("A", "B"), each = nn)
 )
 
-sst <- ggplot(MM.dat, aes(y1, y2, color = xx)) + 
-  geom_point() + 
+sst <- ggplot(MM.dat, aes(y1, y2, color = xx)) +
+  geom_point() +
   geom_segment(aes(x = mean(y1), y = mean(y2), xend = y1, yend = y2)) +
   geom_point(aes(x = mean(y1), y = mean(y2)), col = 'gray50', size = 4) +
   theme(legend.position = "none") +
   ggtitle("Total SS")
 
-ssa <- MM.dat |> 
+ssa <- MM.dat |>
   group_by(xx) |>
   mutate(meany1 = mean(y1), meany2 = mean(y2)) |>
-  ggplot(aes(y1, y2, color = xx)) + 
+  ggplot(aes(y1, y2, color = xx)) +
   geom_point() +
   geom_point(aes(x = mean(y1), y = mean(y2)), col = 'gray50', size = 4) +
-  geom_point(aes(meany1, meany2), size = 4) + 
-  geom_segment(aes(x = mean(y1), y = mean(y2),
-                   xend = meany1, yend = meany2), color = 'black') +
+  geom_point(aes(meany1, meany2), size = 4) +
+  geom_segment(
+    aes(x = mean(y1), y = mean(y2), xend = meany1, yend = meany2),
+    color = 'black'
+  ) +
   theme(legend.position = "none") +
   ggtitle("SS Among Groups")
 
-ssw <- MM.dat |> 
-  group_by(xx) |> 
+ssw <- MM.dat |>
+  group_by(xx) |>
   mutate(meany1 = mean(y1), meany2 = mean(y2)) |>
-  ggplot(aes(y1, y2, color = xx)) + 
+  ggplot(aes(y1, y2, color = xx)) +
   geom_point() +
   geom_point(aes(x = meany1, y = meany2), size = 4) +
   geom_segment(aes(x = y1, y = y2, xend = meany1, yend = meany2)) +
@@ -175,11 +179,11 @@ plot_grid(sst, ssa, ssw, ncol = 3)
 
 $$F_{pseudo} = \frac{\mbox{SSB}/(n_{groups} - 1)}{\mbox{SSW}/(n_{observations}-n_{groups})}$$
 
-- $\mbox{SSB}$ = sum of squared distances between groups 
+- $\mbox{SSB}$ = sum of squared distances between groups
 
-- $\mbox{SSW}$ = sum of squared distances within groups 
+- $\mbox{SSW}$ = sum of squared distances within groups
 
-> This ratio is equivalent to the actual *F* statistic for Euclidian distances in an ANOVA
+> This ratio is equivalent to the actual *F* statistic for Euclidean distances in an ANOVA
 
 
 ## PERmutational part of PERMANOVA
@@ -206,10 +210,10 @@ Assumptions:
 
 - `vegan` package
     - function for PERMANOVA is `adonis2()`
-- Several others exist 
+- Several others exist
   - some have different flavors specific to certain types of datasets
-  
-  
+
+
 ## Stands of White Oak
 
 - Does Topo class predict the species community composition in white oak stands?
@@ -235,7 +239,7 @@ unique(OD$TopoClass)
 ```{r}
 #| echo: true
 
-spp.dat <- OD[,29:217]
+spp.dat <- OD[, 29:217]
 pmod <- adonis2(formula = spp.dat ~ OD$TopoClass, method = "bray")
 pmod
 
@@ -244,7 +248,7 @@ pmod
 
 ## Take-homes
 
-- PERMANOVA is one type of randomization 
+- PERMANOVA is one type of randomization
   - All the issues surrounding how to best perform permutations for different types of models apply here
   - Very few assumptions [@Bakker2024-mg]
 
