@@ -2,7 +2,7 @@
 title: "Problem Set 1"
 author:
   - Your Name Here
-format: 
+format:
   html:
     embed-resources: true
     toc: true
@@ -33,12 +33,12 @@ theme_set(theme_cowplot())
 ## Working with matrices and arrays
 
 As a model system, fruit flies (*Drosophila melanogaster*) are tractable for rearing in large numbers with well-characterized genetics. Wing size and shape in *Drosophila* are frequently studied in the contexts of evolutionary genetics and the aeromechanics of insect flight.
- 
+
 A common method for measuring size and shape of biological structures, including wings, is by extracting landmark coordinates in 2- or 3-dimensional space. The directory `wing_landmarks` contains 183 files with data on 12 landmark coordinates. Because wings are (basically) flat, these data are taken in two dimensions (`X` and `Y`).
 
-The image below shows a wing with its landmarks and a few lines connecting them. The ordering of the landmarks is not important for our exercises, although when collecting these data it is critical to make sure that all the landmark points are in the same order. In this case, the purple point in #1, and the dark red point #12. 
+The image below shows a wing with its landmarks and a few lines connecting them. The ordering of the landmarks is not important for our exercises, although when collecting these data it is critical to make sure that all the landmark points are in the same order. In this case, the purple point is #1, and the dark red point #12.
 
-![](https://www.github.com/QM-Life-Sci/QMLS_2-Multivariate/raw/main/Images/fly_wing.png){fig-align="center"}
+![](https://www.github.com/QM-Life-Sci/QMLS_2-Multivariate/raw/main/Images/fly_wing.png){fig-align="center" fig-alt="A photograph of a fruit fly wing with landmarks."}
 
 Download and unzip the directory. It's best to store the data files inside the `wing_landmarks` directory so you don't have 183 loose files in the same place as your qmd file.
 
@@ -53,13 +53,15 @@ The result should be a 12 by 2 matrix.
 
 ```{r}
 # FIXME
-IMG_1573 <- read_csv("../Data/wing_landmarks//IMG_1573_LM.csv",
-                     show_col_types = FALSE) |> 
-  select(-Landmark) |> 
+IMG_1573 <- read_csv(
+  "../Data/wing_landmarks//IMG_1573_LM.csv",
+  show_col_types = FALSE
+) |>
+  select(-Landmark) |>
   as.matrix()
 ```
 
-The landmarks coordinates are in pixels, which is not a biologically meaningful scale. We need to re-scale the `X` and `Y` values to millimeters. The scale for the coordinates for these images is 1498 pixels = 1 mm. 
+The landmarks coordinates are in pixels, which is not a biologically meaningful scale. We need to re-scale the `X` and `Y` values to millimeters. The scale for the coordinates for these images is 1498 pixels = 1 mm.
 
 In the chunk below, use scalar division to re-scale the coordinates to millimeters. You can check to see that scaling worked by calculating the Euclidean distance between the 3rd and 6th points using `dist(IMG_1573[c(3,6), ])`. This value should be slightly more than 2.16 mm.
 
@@ -67,7 +69,7 @@ In the chunk below, use scalar division to re-scale the coordinates to millimete
 # FIXME
 
 IMG_1573 <- IMG_1573 / 1498
-dist(IMG_1573[c(3,6), ])
+dist(IMG_1573[c(3, 6), ])
 ```
 
 
@@ -86,19 +88,19 @@ colMeans(IMG_1573)
 # Hard coded version for 2 columns
 centroid_size <- function(MM) {
   centroid <- colMeans(MM)
-  return(sqrt(sum((centroid[1] - MM[, 1]) ^ 2 +
-                  (centroid[2] - MM[, 2]) ^ 2)))
+  return(sqrt(sum(
+    (centroid[1] - MM[, 1])^2 +
+      (centroid[2] - MM[, 2])^2
+  )))
 }
 
 # More flexible version using apply allowing any number of columns
 centroid_size_2 <- function(MM) {
   centroid <- colMeans(MM)
-  dists <- apply(MM,
-                 MARGIN = 1,
-                 FUN = function(x) {
-                   as.numeric(dist(rbind(x, centroid)))
-                 })
-  return(sqrt(sum(dists ^ 2)))
+  dists <- apply(MM, MARGIN = 1, FUN = function(x) {
+    as.numeric(dist(rbind(x, centroid)))
+  })
+  return(sqrt(sum(dists^2)))
 }
 
 centroid_size(IMG_1573)
@@ -107,7 +109,7 @@ centroid_size_2(IMG_1573)
 
 Check your calculations, for `IMG_1573`. You should find:
 
-- Centroid: `(1.485953, 1.289080)` 
+- Centroid: `(1.485953, 1.289080)`
 - Centroid size: `2.57595`
 
 
@@ -125,9 +127,11 @@ Either way, you will first need to get a vector with the paths to all of files. 
 ```{r}
 # FIXME
 
-flist <- list.files(path = "../Data/wing_landmarks/",
-                    pattern = ".csv",
-                    full.names = TRUE)
+flist <- list.files(
+  path = "../Data/wing_landmarks/",
+  pattern = ".csv",
+  full.names = TRUE
+)
 
 flist[1:5]
 ```
@@ -148,9 +152,8 @@ The result should be a list (`wings`) of 12 x 2 matrices that is 183 elements lo
 wings <- map(
   .x = flist,
   .f = function(.x) {
-    MM <- read_csv(.x,
-             show_col_types = FALSE) |> 
-      select(-Landmark) |> 
+    MM <- read_csv(.x, show_col_types = FALSE) |>
+      select(-Landmark) |>
       as.matrix()
     MM <- MM / 1498
   }
@@ -176,11 +179,11 @@ wings <- abind(wings, along = 3)
 
 dim(wings)
 
-IDs <- str_split(flist, pattern = .Platform$file.sep, simplify = TRUE)[, 4] |> 
+IDs <- str_split(flist, pattern = .Platform$file.sep, simplify = TRUE)[, 4] |>
   str_remove(pattern = "_LM.csv")
 
 dimnames(wings)[[3]] <- IDs
-wings[ , , 1:3]
+wings[,, 1:3]
 ```
 
 
@@ -222,9 +225,11 @@ Sometimes, such as when you are demonstrating statistical techniques, you just w
 
 ```{r}
 set.seed(4379)
-MM <- tibble(x1 = 0.5 * rnorm(1e4, mean = 0, sd = 1),
-             x2 = 2 * x1 + rnorm(1e4, mean = 0, sd = 1),
-             x3 = 1.5 * x1 + 0.5 * x2 + rnorm(1e4, mean = 0, sd = 1))
+MM <- tibble(
+  x1 = 0.5 * rnorm(1e4, mean = 0, sd = 1),
+  x2 = 2 * x1 + rnorm(1e4, mean = 0, sd = 1),
+  x3 = 1.5 * x1 + 0.5 * x2 + rnorm(1e4, mean = 0, sd = 1)
+)
 
 colMeans(MM)
 cor(MM)
@@ -251,8 +256,7 @@ matrix(c(1, 0.8, 0.8, 1), ncol = 2)
 It can be hard to construct larger matrices this way. Alternately, you can use `rbind()` with a series of vectors. The same matrix is:
 
 ```{r}
-rbind(c(1.0, 0.8),
-      c(0.8, 1.0))
+rbind(c(1.0, 0.8), c(0.8, 1.0))
 ```
 
 Creating the correlation matrix this way makes it easier to keep track of the row positions, because spatially they are located where they will be in the final matrix (trailing ".0"s on the diagonal 1's help as well).
@@ -266,9 +270,7 @@ In the chunk below, create a correlation matrix for three correlated variables. 
 ```{r}
 # FIXME
 
-sigma <- rbind(c(1.00, 0.25, 0.50),
-               c(0.25, 1.00, 0.75),
-               c(0.50, 0.75, 1.00))
+sigma <- rbind(c(1.00, 0.25, 0.50), c(0.25, 1.00, 0.75), c(0.50, 0.75, 1.00))
 sigma
 ```
 
@@ -319,16 +321,16 @@ Change `eval` to `true` and rename `MM` if you need to. Then execute the code ch
 
 library(plotly)
 
-plot_ly(data = data.frame(MM),
-        x = ~ X1,
-        y = ~ X2,
-        z = ~ X3,
-        showlegend = FALSE,
-        type = "scatter3d",
-        mode = "markers",
-        marker = list(size = 3,
-                      color = "navy",
-                      opacity = 0.25))
+plot_ly(
+  data = data.frame(MM),
+  x = ~X1,
+  y = ~X2,
+  z = ~X3,
+  showlegend = FALSE,
+  type = "scatter3d",
+  mode = "markers",
+  marker = list(size = 3, color = "navy", opacity = 0.25)
+)
 
 ```
 
@@ -352,7 +354,7 @@ Load the data in `Sole.xlsx` and select only the columns for:
 # FIXME
 
 library(readxl)
-Sole <- read_excel("../Data/Sole.xlsx") |> 
+Sole <- read_excel("../Data/Sole.xlsx") |>
   select(depth, temperature, salinity, transparency)
 ```
 
@@ -386,15 +388,17 @@ In the chunk below, try to adapt the plotly code from above to make a 3D scatter
 ```{r}
 # FIXME
 
-plot_ly(data = Sole,
-        x = ~ temperature,
-        y = ~ salinity,
-        z = ~ transparency,
-        color = ~ depth,
-        showlegend = FALSE,
-        type = "scatter3d",
-        mode = "markers",
-        marker = list(size = 5))
+plot_ly(
+  data = Sole,
+  x = ~temperature,
+  y = ~salinity,
+  z = ~transparency,
+  color = ~depth,
+  showlegend = FALSE,
+  type = "scatter3d",
+  mode = "markers",
+  marker = list(size = 5)
+)
 ```
 
 Do any new patterns appear when visualizing the data this way? Are any of the relationships more clear? Are any less clear?

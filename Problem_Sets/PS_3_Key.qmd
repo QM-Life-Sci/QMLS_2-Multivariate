@@ -2,7 +2,7 @@
 title: "Problem Set 3"
 author:
   - Your Name Here
-format: 
+format:
   html:
     embed-resources: true
     toc: true
@@ -50,7 +50,7 @@ Import the data, but keep only the columns `A1`, `Moisture`, and `Manure`. Altho
 ```{r}
 # FIXME
 
-DuneEnv <- read_csv("../Data/Dune_Environment.csv", show_col_types = FALSE) |> 
+DuneEnv <- read_csv("../Data/Dune_Environment.csv", show_col_types = FALSE) |>
   dplyr::select(A1, Moisture, Manure)
 ```
 
@@ -71,7 +71,7 @@ correlation_plot <- function(DM, n) {
   M[lower.tri(M)] <- DM
   M <- as.data.frame(M)
   M$rownum <- 1:nrow(M)
-  M_long <- tidyr::pivot_longer(M, cols = -rownum, names_to = "colname") |> 
+  M_long <- tidyr::pivot_longer(M, cols = -rownum, names_to = "colname") |>
     mutate(colname = str_remove(colname, "V") |> as.integer())
   ggplot(M_long, aes(x = rownum, y = colname, fill = value)) +
     geom_tile() +
@@ -164,7 +164,7 @@ What are your conclusions from the output of this test?
 
 ## House sparrow mortality
 
-One of the first tests of natural selection in the wild was observed by Hermon Carey Bumpus during a [winter storm in 1898](https://americanornithology.org/professor-bumpus-and-his-sparrows/), which caused differential mortality in house sparrows. Remember that this was only ~40 years after the publication of Darwin's *Origin of Species*. 
+One of the first tests of natural selection in the wild was observed by Hermon Carey Bumpus during a [winter storm in 1898](https://americanornithology.org/professor-bumpus-and-his-sparrows/), which caused differential mortality in house sparrows. Remember that this was only ~40 years after the publication of Darwin's *Origin of Species*.
 
 Bumpus^[Bumpus, H. C. 1898. Eleventh lecture. The elimination of the unfit as illustrated by the introduced sparrow, *Passer domesticus*. (A fourth contribution to the study of variation.). Biological Lectures: Woods Hole Marine Biological Laboratory 209–225.] describes the mortality event:
 
@@ -200,7 +200,7 @@ Load the data and drop the `subject` column. Count the number of individuals by 
 ```{r}
 # FIXME
 
-HS <- read_csv("../Data/Bumpus_sparrows.csv", show_col_types = FALSE) |> 
+HS <- read_csv("../Data/Bumpus_sparrows.csv", show_col_types = FALSE) |>
   dplyr::select(-subject)
 
 glimpse(HS)
@@ -257,10 +257,8 @@ Make a scatterplot PCs 1 and 2, and color code the points by `sex`.
 ```{r}
 # FIXME
 
-HS <- HS |> 
-  mutate(PC1 = pca_HS$x[, 1],
-         PC2 = pca_HS$x[, 2],
-         PC3 = pca_HS$x[, 3])
+HS <- HS |>
+  mutate(PC1 = pca_HS$x[, 1], PC2 = pca_HS$x[, 2], PC3 = pca_HS$x[, 3])
 
 ggplot(HS, aes(PC1, PC2, color = sex)) +
   geom_point(size = 3) +
